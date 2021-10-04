@@ -31,5 +31,13 @@ namespace hexaGonalClient.game
         {
             return ToString().GetHashCode();
         }
+
+        public static Coords operator +(Coords a, Coords b)
+        {
+            if (a == null || b == null)
+                return a == null ? b : a;
+
+            return new Coords(a.X + b.X, a.Y + b.Y);
+        }
     }
 }

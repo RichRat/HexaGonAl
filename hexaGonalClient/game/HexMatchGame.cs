@@ -28,7 +28,7 @@ namespace hexaGoNal.game
         private Coords prevPreviewPos = null;
         private Dot prevDot = null;
 
-        private double dotSpacing = 30;
+        private double dotSpacing = 26;
         private double dotDiameter = 22;
         private static readonly double yAchisRad = Math.PI / 3;
         private Vector xAxsis = new(1, 0);
@@ -96,7 +96,25 @@ namespace hexaGoNal.game
             Console.WriteLine("y" + y + " xpos " + xPos);
             int x = (int)Math.Round(xPos.X / xAxsis.X / dotSpacing);
 
-            return new Coords(x, y);
+            Coords estim = new(x, y);
+            List<Coords> candidates = getNeighbours(estim, true);
+
+            Coords min = estim;
+            double minDist = Double.MaxValue;
+
+            for (int i = 0; i < candidates.Count; i++)
+            {
+                double dist = (pos - CoordsToScreen(candidates[i])).Length;
+                if (dist < minDist)
+                {
+                    minDist = dist;
+                    min = candidates[i];
+                    Console.Write(i+" ");
+                }
+            }
+            Console.WriteLine();
+
+            return min;
         }
 
         private void RecalcOffCanPos(Object sender, EventArgs e)
@@ -164,5 +182,27 @@ namespace hexaGoNal.game
                 prevMousePos = null;
             }
         }
+
+        private static Coords[] neighboursCoords = { 
+            new Coords(1, 0), 
+            new Coords(-1, 0), 
+            new Coords(1, -1), 
+            new Coords(0, -1), 
+            new Coords(-1, 1), 
+            new Coords(0, -1)
+        };
+
+        private List<Coords> getNeighbours(Coords center, bool includeCenter)
+        {
+            List<Coords> ret = new();
+            if (includeCenter)
+                ret.Add(center);
+
+            foreach (Coords offset in neighboursCoords)
+                ret.Add(center + offset);
+
+            return ret;
+        }
+ 
     }
 }

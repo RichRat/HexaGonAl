@@ -10,7 +10,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="util\" />
+    <Compile Remove="util\**" />
+    <EmbeddedResource Remove="util\**" />
+    <None Remove="util\**" />
+    <Page Remove="util\**" />
   </ItemGroup>
 
 </Project>
