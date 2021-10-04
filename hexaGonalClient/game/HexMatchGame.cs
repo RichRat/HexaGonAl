@@ -15,7 +15,7 @@ namespace hexaGoNal.game
 
     class HexMatchGame : Canvas
     {
-        private Dictionary<int, Dot> dots = new();
+        private Dictionary<Coords, Dot> dots = new();
         private Canvas offCan = new();
         private Vector offset = new(0, 0);
         private List<Player> players = new();
@@ -25,7 +25,7 @@ namespace hexaGoNal.game
         private Point? prevMousePos = null;
 
         private bool isPreview = true;
-        private Coords prevPreviewPos = null;
+        private Coords prevCoords = null;
         private Dot prevDot = null;
 
         private double dotSpacing = 26;
@@ -34,7 +34,15 @@ namespace hexaGoNal.game
         private Vector xAxsis = new(1, 0);
         private Vector yAxsis = new(Math.Cos(yAchisRad), Math.Sin(yAchisRad));
 
-        Rectangle debugRect = new Rectangle();
+        private GameState state = GameState.Preview;
+
+        public enum GameState
+        {
+            Preview = 0,
+            PlayerTransition = 1,
+            GameTransition = 2,
+            GameFinished = 0xF0
+        }
 
         public HexMatchGame()
         {
@@ -53,11 +61,6 @@ namespace hexaGoNal.game
             offCan.Height = 25;
             offCan.Background = new SolidColorBrush(Colors.Orange);
             RecalcOffCanPos(null, null);
-
-            debugRect.Fill = new SolidColorBrush(Colors.GreenYellow);
-            debugRect.Height = dotDiameter;
-            debugRect.Width = dotDiameter;
-            offCan.Children.Add(debugRect);
         }
 
         public void StartGame()
@@ -87,13 +90,8 @@ namespace hexaGoNal.game
             //y axis is just y component of yAchsis vector 
             int y = (int)Math.Round(pos.Y / yAxsis.Y / dotSpacing);
             //now that y is known subtract the distance from pos to create a vector of only the x component
-            
-            Vector xPos = pos - (yAxsis * y * dotSpacing);
-            //DEBUG remove 
-            Canvas.SetLeft(debugRect, xPos.X - dotDiameter / 2);
-            Canvas.SetTop(debugRect, xPos.Y - dotDiameter / 2);
 
-            Console.WriteLine("y" + y + " xpos " + xPos);
+            Vector xPos = pos - (yAxsis * y * dotSpacing);
             int x = (int)Math.Round(xPos.X / xAxsis.X / dotSpacing);
 
             Coords estim = new(x, y);
@@ -109,10 +107,8 @@ namespace hexaGoNal.game
                 {
                     minDist = dist;
                     min = candidates[i];
-                    Console.Write(i+" ");
                 }
             }
-            Console.WriteLine();
 
             return min;
         }
@@ -143,17 +139,16 @@ namespace hexaGoNal.game
                     offCan.Children.Add(prevDot.Shape);
                 }
 
-                Coords c = ScreenToCoords((Vector)e.GetPosition(offCan));
-                if (!c.Equals(prevPreviewPos))
+                Coords lastPrevCoords = prevCoords;
+                prevCoords = ScreenToCoords((Vector)e.GetPosition(offCan));
+                if (prevCoords != lastPrevCoords)
                 {
-                    Vector dotOffset = CoordsToScreen(c);
-                    //Console.WriteLine("input: " + e.GetPosition(offCan) + " coords: " + c + " screen: " + dotOffset);
+                    Vector dotOffset = CoordsToScreen(prevCoords);
                     Canvas.SetLeft(prevDot.Shape, dotOffset.X - dotDiameter / 2);
                     Canvas.SetTop(prevDot.Shape, dotOffset.Y - dotDiameter / 2);
                 }
                 
             }
-            //todo draw preview logic + enable flag
         }
 
         private void OnMouseDown(object sender, MouseButtonEventArgs e)
@@ -162,6 +157,15 @@ namespace hexaGoNal.game
             {
                 isDrag = true;
                 prevMousePos = e.GetPosition(this);
+            }
+
+            if (isPreview && e.ChangedButton == MouseButton.Left && !dots.ContainsKey(prevCoords))
+            {
+                dots.Add(prevCoords ,prevDot);
+
+
+                prevDot = null;
+                activePlayer = ++activePlayer % players.Count;
             }
         }
 
