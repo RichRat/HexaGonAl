@@ -1,0 +1,22 @@
+﻿<Window x:Class="hexaGoNal.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:hexaGoNal"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800" Background="Black">
+    <Grid Name="grMain">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50px"></RowDefinition>
+            <RowDefinition Height="8px"></RowDefinition>
+            <RowDefinition></RowDefinition>
+        </Grid.RowDefinitions>
+        <StackPanel Name="spMenue" Height="50px" Background="#222" Orientation="Horizontal">
+            <TextBlock Foreground="#EEE" FontSize="22px" VerticalAlignment="Center" Margin="20px 0px" FontWeight="ExtraBold">HexaGonal</TextBlock>
+            <Button Name="btnReset" Height="25px" Width="100" FlowDirection="RightToLeft">Reset</Button>
+        </StackPanel>
+        <Rectangle Grid.Row="1" Name="spacer"  Height="8px" Fill="#444"></Rectangle>
+
+    </Grid>
+</Window>
