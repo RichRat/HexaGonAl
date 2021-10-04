@@ -17,19 +17,32 @@ namespace hexaGonalClient.game
             Y = y;
         }
 
-        private bool Equals(Coords c)
+        public override bool Equals(object obj)
         {
-            return c != null && X == c.X && Y == c.Y;
+            if (obj is Coords)
+            {
+                Coords b = (Coords)obj;
+                return X == b.X && Y == b.Y;
+            }
+
+            return false;
         }
 
         public static bool operator ==(Coords a, Coords b)
         {
-            return Equals(a, b);
+            if (a is null)
+                return b is null;
+
+            return a.Equals(b);
         }
 
         public static bool operator !=(Coords a, Coords b)
         {
-            return !Equals(a, b);
+            if (a is null)
+                return b is not null;
+
+            return !a.Equals(b);
+
         }
 
         public override string ToString()

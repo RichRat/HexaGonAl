@@ -30,7 +30,14 @@ namespace hexaGoNal
             Grid.SetRow(game, 2);
             grMain.Children.Add(game);
 
+            game.PlayerChanged += OnPlayerChanged;
+
             game.StartGame();
+        }
+
+        private void OnPlayerChanged(object sender, Player pl)
+        {
+            RectSpacer.Fill = new SolidColorBrush(pl.Color);
         }
     }
 }

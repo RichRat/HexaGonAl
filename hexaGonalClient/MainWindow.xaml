@@ -16,7 +16,7 @@
             <TextBlock Foreground="#EEE" FontSize="22px" VerticalAlignment="Center" Margin="20px 0px" FontWeight="ExtraBold">HexaGonal</TextBlock>
             <Button Name="btnReset" Height="25px" Width="100" FlowDirection="RightToLeft">Reset</Button>
         </StackPanel>
-        <Rectangle Grid.Row="1" Name="spacer"  Height="8px" Fill="#444"></Rectangle>
+        <Rectangle Grid.Row="1" Name="RectSpacer"  Height="8px" Fill="#444"></Rectangle>
 
     </Grid>
 </Window>

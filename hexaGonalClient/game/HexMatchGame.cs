@@ -36,6 +36,7 @@ namespace hexaGoNal.game
 
         private GameState state = GameState.Preview;
 
+        public event EventHandler<Player> PlayerChanged;
         public enum GameState
         {
             Preview = 0,
@@ -43,6 +44,15 @@ namespace hexaGoNal.game
             GameTransition = 2,
             GameFinished = 0xF0
         }
+
+        private static readonly Coords[] neighboursCoords = {
+            new Coords(1, 0),
+            new Coords(-1, 0),
+            new Coords(1, -1),
+            new Coords(0, -1),
+            new Coords(-1, 1),
+            new Coords(0, -1)
+        };
 
         public HexMatchGame()
         {
@@ -57,9 +67,9 @@ namespace hexaGoNal.game
             this.MouseMove += OnMouseMove;
 
             offCan.ClipToBounds = false;
-            offCan.Width = 25;
-            offCan.Height = 25;
-            offCan.Background = new SolidColorBrush(Colors.Orange);
+            //offCan.Width = 25;
+            //offCan.Height = 25;
+            //offCan.Background = new SolidColorBrush(Colors.Orange);
             RecalcOffCanPos(null, null);
         }
 
@@ -74,9 +84,10 @@ namespace hexaGoNal.game
 
             players.Clear();
             //todo enable custom names and colors(?)
-            players.Add(new Player(Colors.Red, "Player Red"));
-            players.Add(new Player(Colors.Blue, "Player Blue"));
+            players.Add(new Player(Colors.Orange, "Player 1"));
+            players.Add(new Player(Colors.Cyan, "Player 2"));
             activePlayer = 0;
+            PlayerChanged?.Invoke(this, players[activePlayer]);
         }
 
         private Vector CoordsToScreen(Coords c)
@@ -84,13 +95,19 @@ namespace hexaGoNal.game
             return xAxsis * c.X * dotSpacing + yAxsis * c.Y * dotSpacing;
         }
 
+        /// <summary>
+        /// Calculate Coordintes for a given screen position (relative to offCanv)
+        /// <br/> that the result is a best estimate including a slight preference 
+        /// for the previous result defined by the distance to the neighbouring coordinates
+        /// <param name="pos">Position relative to offCanv</param>
+        /// <returns>Coordinates in the game space</returns>
         private Coords ScreenToCoords(Vector pos)
         {
 
             //y axis is just y component of yAchsis vector 
             int y = (int)Math.Round(pos.Y / yAxsis.Y / dotSpacing);
-            //now that y is known subtract the distance from pos to create a vector of only the x component
 
+            //now that y is known subtract the distance from pos to create a vector of only the x component
             Vector xPos = pos - (yAxsis * y * dotSpacing);
             int x = (int)Math.Round(xPos.X / xAxsis.X / dotSpacing);
 
@@ -98,11 +115,16 @@ namespace hexaGoNal.game
             List<Coords> candidates = getNeighbours(estim, true);
 
             Coords min = estim;
-            double minDist = Double.MaxValue;
+            double minDist = double.MaxValue;
 
             for (int i = 0; i < candidates.Count; i++)
             {
                 double dist = (pos - CoordsToScreen(candidates[i])).Length;
+
+                //give the previous coords a bit of an advantage to avoid it feeling nervous
+                if (candidates[i] == prevCoords)
+                    dist *= 0.8;
+
                 if (dist < minDist)
                 {
                     minDist = dist;
@@ -118,8 +140,6 @@ namespace hexaGoNal.game
             Canvas.SetLeft(offCan, offset.X + ActualWidth / 2);
             Canvas.SetTop(offCan, offset.Y + this.ActualHeight / 2);
         }
-
-        
 
         private void OnMouseMove(object sender, MouseEventArgs e)
         {
@@ -147,6 +167,11 @@ namespace hexaGoNal.game
                     Canvas.SetLeft(prevDot.Shape, dotOffset.X - dotDiameter / 2);
                     Canvas.SetTop(prevDot.Shape, dotOffset.Y - dotDiameter / 2);
                 }
+
+                if (dots.ContainsKey(prevCoords))
+                    prevDot.Shape.Visibility = Visibility.Hidden;
+                else if (prevDot.Shape.Visibility == Visibility.Hidden)
+                    prevDot.Shape.Visibility = Visibility.Visible;
                 
             }
         }
@@ -166,6 +191,8 @@ namespace hexaGoNal.game
 
                 prevDot = null;
                 activePlayer = ++activePlayer % players.Count;
+
+                PlayerChanged?.Invoke(this, players[activePlayer]);
             }
         }
 
@@ -187,14 +214,7 @@ namespace hexaGoNal.game
             }
         }
 
-        private static Coords[] neighboursCoords = { 
-            new Coords(1, 0), 
-            new Coords(-1, 0), 
-            new Coords(1, -1), 
-            new Coords(0, -1), 
-            new Coords(-1, 1), 
-            new Coords(0, -1)
-        };
+
 
         private List<Coords> getNeighbours(Coords center, bool includeCenter)
         {
