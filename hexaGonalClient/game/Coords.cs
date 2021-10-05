@@ -45,6 +45,14 @@ namespace hexaGonalClient.game
 
         }
 
+        public static Coords operator *(Coords a, int scalar)
+        {
+            if (a is null)
+                return null;
+
+            return new Coords(a.X * scalar, a.Y * scalar);
+        }
+
         public override string ToString()
         {
             return X + ";" + Y;
@@ -58,7 +66,7 @@ namespace hexaGonalClient.game
         public static Coords operator +(Coords a, Coords b)
         {
             if (a == null || b == null)
-                return a == null ? b : a;
+                return a ?? b;
 
             return new Coords(a.X + b.X, a.Y + b.Y);
         }

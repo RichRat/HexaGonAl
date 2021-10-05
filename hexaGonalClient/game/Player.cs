@@ -32,5 +32,10 @@ namespace hexaGoNal
         {
             score++;
         }
+
+        public override string ToString()
+        {
+            return Name;
+        }
     }
 }

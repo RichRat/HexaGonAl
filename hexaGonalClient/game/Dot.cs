@@ -55,5 +55,6 @@ namespace hexaGoNal
             }
         }
 
+        public Player Player => player;
     }
 }

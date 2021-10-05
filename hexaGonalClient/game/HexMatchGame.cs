@@ -54,6 +54,13 @@ namespace hexaGoNal.game
             new Coords(0, -1)
         };
 
+        private static readonly Coords[] directionCoords =
+        {
+            new Coords(1, 0),
+            new Coords(0, 1),
+            new Coords(-1, 1)
+        };
+
         public HexMatchGame()
         {
             this.ClipToBounds = true;
@@ -88,6 +95,11 @@ namespace hexaGoNal.game
             players.Add(new Player(Colors.Cyan, "Player 2"));
             activePlayer = 0;
             PlayerChanged?.Invoke(this, players[activePlayer]);
+
+            offCan.Children.Clear();
+            isPreview = true;
+            //state = GameState.Preview;
+            dots.Clear();
         }
 
         private Vector CoordsToScreen(Coords c)
@@ -112,7 +124,7 @@ namespace hexaGoNal.game
             int x = (int)Math.Round(xPos.X / xAxsis.X / dotSpacing);
 
             Coords estim = new(x, y);
-            List<Coords> candidates = getNeighbours(estim, true);
+            List<Coords> candidates = GetNeighbours(estim, true);
 
             Coords min = estim;
             double minDist = double.MaxValue;
@@ -190,8 +202,22 @@ namespace hexaGoNal.game
 
 
                 prevDot = null;
-                activePlayer = ++activePlayer % players.Count;
+                
 
+                List<Coords> winRow = CheckWin(prevCoords, players[activePlayer]);
+                if (winRow.Count > 4)
+                {
+                    //TODO mark winning row
+                    //TODO end game
+                    //TODO announce win
+                    Console.WriteLine("Winner: " + players[activePlayer].Name + " " + winRow);
+                    isPreview = false;
+                    return;
+
+                    
+                }
+
+                activePlayer = ++activePlayer % players.Count;
                 PlayerChanged?.Invoke(this, players[activePlayer]);
             }
         }
@@ -216,7 +242,7 @@ namespace hexaGoNal.game
 
 
 
-        private List<Coords> getNeighbours(Coords center, bool includeCenter)
+        private List<Coords> GetNeighbours(Coords center, bool includeCenter)
         {
             List<Coords> ret = new();
             if (includeCenter)
@@ -224,6 +250,47 @@ namespace hexaGoNal.game
 
             foreach (Coords offset in neighboursCoords)
                 ret.Add(center + offset);
+
+            return ret;
+        }
+
+        private List<Coords> CheckWin(Coords pos, Player actPl)
+        {
+            List<Coords> ret = new();
+            foreach (Coords direction in directionCoords)
+            {
+                Coords[] row = GetCheckRows(pos, direction);
+                for (int i = 0; i < row.Length; i++)
+                {
+                    Coords checkPos = row[i];
+                    if (!dots.ContainsKey(checkPos))
+                    {
+                        ret.Clear();
+                        continue;
+                    }
+
+                    if (dots[checkPos].Player == actPl)
+                    {
+                        ret.Add(checkPos);
+                        if (ret.Count > 4)
+                            return ret;
+                    }
+                    else
+                        ret.Clear();
+                }
+            }
+
+            ret.Clear();
+            return ret;
+        }
+
+        private Coords[] GetCheckRows(Coords pos, Coords direction)
+        {
+            Coords[] ret = new Coords[9];
+            for (int i = -4; i < 5; i++)
+            {
+                ret[i + 4] = pos + (direction * i);
+            }
 
             return ret;
         }

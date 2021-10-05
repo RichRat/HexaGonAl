@@ -22,11 +22,13 @@ namespace hexaGoNal
     public partial class MainWindow : Window
     {
         List<Dot> dots = new();
+        HexMatchGame game;
+
         public MainWindow()
         {
             InitializeComponent();
 
-            HexMatchGame game = new();
+            game = new();
             Grid.SetRow(game, 2);
             grMain.Children.Add(game);
 
@@ -38,6 +40,11 @@ namespace hexaGoNal
         private void OnPlayerChanged(object sender, Player pl)
         {
             RectSpacer.Fill = new SolidColorBrush(pl.Color);
+        }
+
+        private void btnReset_Click(object sender, RoutedEventArgs e)
+        {
+            game.StartGame();
         }
     }
 }
