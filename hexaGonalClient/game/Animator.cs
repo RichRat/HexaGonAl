@@ -7,7 +7,7 @@ using System.Timers;
 
 namespace hexaGonalClient.game
 {
-    class Animator : IDisposable
+    partial class Animator : IDisposable
     {
         Timer timer;
         Dictionary<Object, Animatee> animators = new();
@@ -26,57 +26,72 @@ namespace hexaGonalClient.game
             timer.Interval = 1000 / 60;
             timer.Elapsed += OnTimerElapsed;
             timer.Start();
-
+            timer.Enabled = false; //is enabled on first animatee
         }
 
         private void OnTimerElapsed(object sender, ElapsedEventArgs e)
         {
-            foreach (Animatee anim in animators.Values)
+            long curTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+            bool remFlag = false;
+            foreach (var kvp in animators)
             {
-         
+                Animatee anim = kvp.Value;
+                //x is the linear progress of the animation
+                double x = 1 - (double)(anim.GetRemainTime()) / (double)anim.Duration;
+                if (anim.IsDone())
+                {
+                    x = 1;
+                    remFlag = true;
+                }
+
+                //convert linear factor to animation progress 0 to 1
+                double animFactor = anim.Style switch
+                {
+                    AnimationStyle.Linear => x,
+                    AnimationStyle.EaseIn => x * x,
+                    AnimationStyle.EaseOut => Math.Sqrt(x),
+                    AnimationStyle.EaseInOut => (Math.Sin((x - 0.5) * Math.PI) + 1) / 2,
+                    _ => x
+                };
+
+                anim.Action.Invoke(kvp.Key, animFactor);
             }
+
+            if (remFlag)
+                foreach (KeyValuePair<object, Animatee> item in animators.Where(kvp => kvp.Value.IsDone()).ToArray())
+                    RemoveAnimatee(item.Key);
         }
 
-        private double calcAnimFactor(AnimationStyle anim, double linear) => anim switch
-        {
-            AnimationStyle.Linear => linear,
-            AnimationStyle.EaseIn => throw new NotImplementedException(),
-            AnimationStyle.EaseOut => throw new NotImplementedException(),
-            AnimationStyle.EaseInOut => throw new NotImplementedException(), 
-        }
-
-        public void RegisterAnimation(Object key, Action<double> animate, long millis, AnimationStyle style = AnimationStyle.Linear)
+        public void RegisterAnimation(object key, Action<Object, double> animate, long millis, AnimationStyle style = AnimationStyle.Linear)
         {
             animators.Add(key, new Animatee(millis, animate, style));
+            if (!timer.Enabled)
+                timer.Enabled = true;
         }
 
         public void UnregisterAnimation(Object key, bool callFinalState)
         {
             if (callFinalState)
-                animators[key].Action(1);
+                animators[key].Action(key, 1);
+
+            RemoveAnimatee(key);
+        }
+
+
+        private void RemoveAnimatee(Object key)
+        {
+            if (key == null)
+                return;
 
             animators.Remove(key);
+
+            if (animators.Count == 0 && timer.Enabled)
+                timer.Enabled = false;
         }
 
         public void Dispose()
         {
             timer?.Dispose();
-        }
-
-        private class Animatee
-        {
-            public long StartTime;
-            public long TargetTime;
-            public Action<double> Action;
-            public AnimationStyle Style;
-
-            public Animatee(long timeSpan, Action<double> action, AnimationStyle style)
-            {
-                TargetTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() + timeSpan;
-                StartTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                Action = action;
-                Style = style;
-            }
         }
     }
 }
