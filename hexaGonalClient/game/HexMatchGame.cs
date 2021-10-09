@@ -9,24 +9,27 @@ using System.Windows.Shapes;
 using System.Windows.Media;
 using System.Windows.Input;
 using hexaGonalClient.game;
+using System.Diagnostics;
+using static hexaGoNal.Dot;
+using static hexaGonalClient.game.Animator;
 
 namespace hexaGoNal.game
 {
 
     class HexMatchGame : Canvas
     {
-        private Dictionary<Coords, Dot> dots = new();
-        private Canvas offCan = new();
-        private Vector offset = new(0, 0);
-        private List<Player> players = new();
+        private readonly Dictionary<Coords, Dot> dots = new();
+        private readonly Canvas offCan = new();
+        
+        private readonly List<Player> players = new();
         private int activePlayer;
 
         private bool isDrag = false;
-        private Point? prevMousePos = null;
+        ScreenScroller scroller;
 
         private bool isPreview = true;
-        private Coords prevCoords = null;
-        private Dot prevDot = null;
+        private Coords prevCoords;
+        private Dot prevDot;
 
         private double dotSpacing = 26;
         private double dotDiameter = 22;
@@ -36,7 +39,10 @@ namespace hexaGoNal.game
 
         private GameState state = GameState.Preview;
 
+        private readonly Animator animator;
+
         public event EventHandler<Player> PlayerChanged;
+
         public enum GameState
         {
             Preview = 0,
@@ -63,31 +69,31 @@ namespace hexaGoNal.game
 
         public HexMatchGame()
         {
+            animator = new(this);
+            scroller = new(offCan, this, animator);
+
             this.ClipToBounds = true;
             this.Children.Add(offCan);
             this.Background = new SolidColorBrush(Color.FromRgb(0x11, 0x11, 0x11));
-
-            this.SizeChanged += RecalcOffCanPos;
+            
+            
+            this.SizeChanged += scroller.SetOffset;
             this.MouseDown += OnMouseDown;
             this.MouseUp += OnMouseUp;
             this.MouseLeave += OnMouseLeave;
             this.MouseMove += OnMouseMove;
 
+
             offCan.ClipToBounds = false;
-            //offCan.Width = 25;
-            //offCan.Height = 25;
-            //offCan.Background = new SolidColorBrush(Colors.Orange);
-            RecalcOffCanPos(null, null);
+            scroller.SetOffset(null, null);
         }
 
         public void StartGame()
         {
             System.Console.WriteLine("Start Game");
             //clear up previous game
-            //offCan.Children.Clear();
-            offset.X = 0;
-            offset.Y = 0;
-            RecalcOffCanPos(null, null);
+            scroller.Offset = new Vector();
+            scroller.SetOffset(null, null);
 
             players.Clear();
             //todo enable custom names and colors(?)
@@ -147,27 +153,19 @@ namespace hexaGoNal.game
             return min;
         }
 
-        private void RecalcOffCanPos(Object sender, EventArgs e)
-        {
-            Canvas.SetLeft(offCan, offset.X + ActualWidth / 2);
-            Canvas.SetTop(offCan, offset.Y + this.ActualHeight / 2);
-        }
+        
 
         private void OnMouseMove(object sender, MouseEventArgs e)
         {
-            if (isDrag && prevMousePos != null)
-            {
-                //introduce smoothing here! 
-                offset += e.GetPosition(this) - prevMousePos.Value;
-                prevMousePos = e.GetPosition(this);
-                RecalcOffCanPos(null, null);
-            }
+            if (isDrag)
+                scroller.OnDrag(sender, e);
 
             if (isPreview)
             {
                 if (prevDot == null)
                 {
                     prevDot = new Dot(players[activePlayer], dotDiameter);
+                    prevDot.State = DotState.PREVIEW;
                     offCan.Children.Add(prevDot.Shape);
                 }
 
@@ -193,28 +191,28 @@ namespace hexaGoNal.game
             if (!isDrag && e.RightButton == MouseButtonState.Pressed)
             {
                 isDrag = true;
-                prevMousePos = e.GetPosition(this);
+                scroller.StartDrag(sender, e);
             }
 
             if (isPreview && e.ChangedButton == MouseButton.Left && !dots.ContainsKey(prevCoords))
             {
                 dots.Add(prevCoords ,prevDot);
-
-
+                prevDot.State = DotState.DEFALUT;
+                AnimatePlaceDot(prevDot, prevCoords);
                 prevDot = null;
                 
-
                 List<Coords> winRow = CheckWin(prevCoords, players[activePlayer]);
                 if (winRow.Count > 4)
                 {
-                    //TODO mark winning row
+                    foreach (Coords c in winRow)
+                        if (dots[c] != null)
+                            dots[c].State = DotState.WIN;
+                    
                     //TODO end game
                     //TODO announce win
                     Console.WriteLine("Winner: " + players[activePlayer].Name + " " + winRow);
                     isPreview = false;
                     return;
-
-                    
                 }
 
                 activePlayer = ++activePlayer % players.Count;
@@ -222,12 +220,39 @@ namespace hexaGoNal.game
             }
         }
 
+        public void AnimatePlaceDot(Dot dot, Coords c)
+        {
+            Vector pos = CoordsToScreen(c);
+            Ellipse e = new()
+            {
+                Height = dot.Shape.Height,
+                Width = dot.Shape.Width,
+                Fill = new SolidColorBrush(Util.ChangeColorBrightness(dot.Player.Color, 0.8)),
+                Opacity = 0
+            };
+
+            offCan.Children.Insert(0, e);
+
+            double maxSize = dotDiameter * 3;
+
+            Animation anim = animator.RegisterAnimation(e, AnimationStyle.EaseInOut, 500, (k, x) =>
+            {
+                double diam = dotDiameter + dotDiameter * 2 * x;
+                e.Height = diam;
+                e.Width = diam;
+                Canvas.SetLeft(e, pos.X - e.Width / 2);
+                Canvas.SetTop(e, pos.Y - e.Height / 2);
+                e.Opacity = 1 - x;
+            });
+            anim.AnimationFinished = () => offCan.Children.Remove(e);
+        }
+
         private void OnMouseUp(object sender, MouseButtonEventArgs e)
         {
             if (isDrag && e.ChangedButton == MouseButton.Right && e.ButtonState == MouseButtonState.Released)
             {
                 isDrag = false;
-                prevMousePos = null;
+                scroller.StopDrag();
             }
         }
 
@@ -236,11 +261,9 @@ namespace hexaGoNal.game
             if (isDrag)
             {
                 isDrag = false;
-                prevMousePos = null;
+                scroller.StopDrag(false);
             }
         }
-
-
 
         private List<Coords> GetNeighbours(Coords center, bool includeCenter)
         {

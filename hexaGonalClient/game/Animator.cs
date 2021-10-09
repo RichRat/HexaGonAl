@@ -1,16 +1,19 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
+using System.Windows;
 
 namespace hexaGonalClient.game
 {
     partial class Animator : IDisposable
     {
-        Timer timer;
-        Dictionary<Object, Animatee> animators = new();
+        private Timer timer;
+        private ConcurrentDictionary<Object, Animation> animators = new();
+        private FrameworkElement elem;
 
         public enum AnimationStyle
         {
@@ -20,8 +23,10 @@ namespace hexaGonalClient.game
             EaseInOut
         }
 
-        public Animator()
+        public Animator(FrameworkElement elem)
         {
+            this.elem = elem;
+
             timer = new();
             timer.Interval = 1000 / 60;
             timer.Elapsed += OnTimerElapsed;
@@ -33,9 +38,10 @@ namespace hexaGonalClient.game
         {
             long curTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
             bool remFlag = false;
+
             foreach (var kvp in animators)
             {
-                Animatee anim = kvp.Value;
+                Animation anim = kvp.Value;
                 //x is the linear progress of the animation
                 double x = 1 - (double)(anim.GetRemainTime()) / (double)anim.Duration;
                 if (anim.IsDone())
@@ -54,22 +60,41 @@ namespace hexaGonalClient.game
                     _ => x
                 };
 
-                anim.Action.Invoke(kvp.Key, animFactor);
+                elem.Dispatcher.Invoke(anim.Action, kvp.Key, animFactor);
+                if (remFlag && anim.AnimationFinished != null)
+                    elem.Dispatcher.Invoke(anim.AnimationFinished);
             }
 
             if (remFlag)
-                foreach (KeyValuePair<object, Animatee> item in animators.Where(kvp => kvp.Value.IsDone()).ToArray())
+                foreach (KeyValuePair<object, Animation> item in animators.Where(kvp => kvp.Value.IsDone()).ToArray())
                     RemoveAnimatee(item.Key);
         }
 
-        public void RegisterAnimation(object key, Action<Object, double> animate, long millis, AnimationStyle style = AnimationStyle.Linear)
+        public void RetigstAnimation(object key, long millis, Action<Object, double> animate) 
+            => RegisterAnimation(key, AnimationStyle.Linear, millis, animate);
+
+
+        private Random rnd = new();
+
+        public Animation RegisterAnimation(AnimationStyle style, long millis, Action<Object, double> animate)
         {
-            animators.Add(key, new Animatee(millis, animate, style));
-            if (!timer.Enabled)
-                timer.Enabled = true;
+            return RegisterAnimation(rnd.Next(int.MaxValue), style, millis, animate);
         }
 
-        public void UnregisterAnimation(Object key, bool callFinalState)
+        public Animation RegisterAnimation(object key, AnimationStyle style, long millis, Action<Object, double> animate)
+        {
+            Animation anim = new(millis, animate, style);
+            bool r = animators.TryAdd(key, anim);
+            if (!r)
+                Console.WriteLine("Failed adding animation " + key);
+
+            if (!timer.Enabled)
+                timer.Enabled = true;
+
+            return anim;
+        }
+
+        public void UnregisterAnimation(Object key, bool callFinalState = false)
         {
             if (callFinalState)
                 animators[key].Action(key, 1);
@@ -82,10 +107,8 @@ namespace hexaGonalClient.game
         {
             if (key == null)
                 return;
-
-            animators.Remove(key);
-
-            if (animators.Count == 0 && timer.Enabled)
+            animators.Remove(key, out _);
+            if (animators.IsEmpty && timer.Enabled)
                 timer.Enabled = false;
         }
 

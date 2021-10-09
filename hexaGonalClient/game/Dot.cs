@@ -5,15 +5,21 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Shapes;
 using System.Windows.Media;
+using System.Windows.Controls;
+using System.Windows.Media.Effects;
+using hexaGonalClient.game;
 
 namespace hexaGoNal
 {
     class Dot
     {
-        Ellipse shape = new Ellipse();
+        private readonly Ellipse shape = new Ellipse();
         private SolidColorBrush fill;
         private Player player;
 
+        private Action undoState;
+
+        //TODO add state LastPlaced to show the next player what happened
         public enum DotState
         {
             DEFALUT = 0,
@@ -36,10 +42,51 @@ namespace hexaGoNal
             prevState = state;
         }
 
-        private void OnStateChanged(DotState prev, DotState current)
+
+
+        private void OnStateChanged()
         {
-            //TODO implement differtent display modes: default, preview (transparent), win (add border)
+            undoState?.Invoke();
+
+            switch (state)
+            {
+                case DotState.DEFALUT:
+                    break;
+
+                case DotState.PREVIEW:
+                    shape.Stroke = shape.Fill.Clone();
+                    shape.Fill = new SolidColorBrush(Colors.Transparent);
+                    shape.StrokeThickness = 4;
+                    undoState = () =>
+                    {
+                        shape.Fill = new SolidColorBrush(player.Color);
+                        shape.StrokeThickness = 0;
+                    };
+                    break;
+
+                case DotState.WIN:
+                    shape.Stroke = new SolidColorBrush(Colors.White);
+                    shape.StrokeThickness = 2;
+                    shape.Effect = new DropShadowEffect {
+                        ShadowDepth = 0,
+                        Color = Util.ChangeColorBrightness(player.Color, 0.2),
+                        Opacity = 1,
+                        BlurRadius = 64
+                    };
+                    undoState = () =>
+                    {
+                        shape.StrokeThickness = 0;
+                        shape.Effect = null;
+                    };
+                    break;
+
+                default:
+                    break;
+            }
         }
+
+        //TODO move to util class
+  
 
         public Shape Shape => shape;
 
@@ -49,11 +96,14 @@ namespace hexaGoNal
             set {
                 if (state != value)
                 {
-                    OnStateChanged(state, value);
                     state = value;
+                    OnStateChanged();
+                    
                 }
             }
         }
+
+        public Action UndoStateAction => undoState;
 
         public Player Player => player;
     }
