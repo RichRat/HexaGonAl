@@ -223,7 +223,7 @@ namespace hexaGoNal.game
         public void AnimatePlaceDot(Dot dot, Coords c)
         {
             Vector pos = CoordsToScreen(c);
-            Ellipse e = new()
+            Ellipse disc = new()
             {
                 Height = dot.Shape.Height,
                 Width = dot.Shape.Width,
@@ -231,20 +231,19 @@ namespace hexaGoNal.game
                 Opacity = 0
             };
 
-            offCan.Children.Insert(0, e);
+            offCan.Children.Insert(0, disc);
 
             double maxSize = dotDiameter * 3;
-
-            Animation anim = animator.RegisterAnimation(e, AnimationStyle.EaseInOut, 500, (k, x) =>
+            Animation anim = animator.RegisterAnimation(disc, AnimationStyle.EaseInOut, 500, (k, x) =>
             {
                 double diam = dotDiameter + dotDiameter * 2 * x;
-                e.Height = diam;
-                e.Width = diam;
-                Canvas.SetLeft(e, pos.X - e.Width / 2);
-                Canvas.SetTop(e, pos.Y - e.Height / 2);
-                e.Opacity = 1 - x;
+                disc.Height = diam;
+                disc.Width = diam;
+                Canvas.SetLeft(disc, pos.X - disc.Width / 2);
+                Canvas.SetTop(disc, pos.Y - disc.Height / 2);
+                disc.Opacity = 1 - x;
             });
-            anim.AnimationFinished = () => offCan.Children.Remove(e);
+            anim.AnimationFinished = () => offCan.Children.Remove(disc);
         }
 
         private void OnMouseUp(object sender, MouseButtonEventArgs e)

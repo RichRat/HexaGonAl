@@ -11,9 +11,10 @@ namespace hexaGonalClient.game
 {
     partial class Animator : IDisposable
     {
-        private Timer timer;
-        private ConcurrentDictionary<Object, Animation> animators = new();
-        private FrameworkElement elem;
+        private readonly Timer timer;
+        private readonly ConcurrentDictionary<Object, Animation> animators = new();
+        private readonly FrameworkElement elem;
+        private readonly Random rnd = new();
 
         public enum AnimationStyle
         {
@@ -61,20 +62,23 @@ namespace hexaGonalClient.game
                 };
 
                 elem.Dispatcher.Invoke(anim.Action, kvp.Key, animFactor);
-                if (remFlag && anim.AnimationFinished != null)
-                    elem.Dispatcher.Invoke(anim.AnimationFinished);
+                
             }
 
             if (remFlag)
-                foreach (KeyValuePair<object, Animation> item in animators.Where(kvp => kvp.Value.IsDone()).ToArray())
+            {
+                KeyValuePair<object, Animation>[] remArr = animators.Where(kvp => kvp.Value.IsDone()).ToArray();
+                foreach (KeyValuePair<object, Animation> item in remArr)
+                {
+                    item.Value.OnFinished(elem.Dispatcher);
                     RemoveAnimatee(item.Key);
+                }
+            }
         }
 
         public void RetigstAnimation(object key, long millis, Action<Object, double> animate) 
             => RegisterAnimation(key, AnimationStyle.Linear, millis, animate);
 
-
-        private Random rnd = new();
 
         public Animation RegisterAnimation(AnimationStyle style, long millis, Action<Object, double> animate)
         {

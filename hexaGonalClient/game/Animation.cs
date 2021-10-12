@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Windows.Threading;
 using static hexaGonalClient.game.Animator;
 
 namespace hexaGonalClient.game
@@ -29,5 +30,11 @@ namespace hexaGonalClient.game
         }
 
         public Action AnimationFinished { get; set; }
+
+        internal void OnFinished(Dispatcher disp)
+        {
+            if (AnimationFinished != null)
+                disp.Invoke(AnimationFinished);
+        }
     }
 }
