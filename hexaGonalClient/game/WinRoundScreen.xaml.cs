@@ -24,7 +24,20 @@ namespace hexaGonalClient
         public WinRoundScreen()
         {
             InitializeComponent();
+            SizeChanged += WinRoundScreen_SizeChanged;
         }
+
+        private void WinRoundScreen_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (DisplWidthOffset)
+                return;
+
+            double left = Canvas.GetLeft(this);
+            Canvas.SetLeft(this, left - ActualWidth / 2);
+            DisplWidthOffset = true;
+        }
+
+        public bool DisplWidthOffset { get; set; }
 
         public void EnableScreen(Player winPlayer, List<Player> pll)
         {
@@ -48,10 +61,10 @@ namespace hexaGonalClient
             txtDivider.Foreground = winPlayer.Brush;
 
             txtPlayer1Status.Foreground = pll[0].Brush;
-            txtPlayer1Status.Text = pll[0].Name + " " + pll[0].Score;
+            txtPlayer1Status.Text = pll[0].Score.ToString();
 
             txtPlayer2Status.Foreground = pll[1].Brush;
-            txtPlayer2Status.Text = pll[1].Score + " " + pll[0].Name;
+            txtPlayer2Status.Text = pll[1].Score.ToString(); ;
         }
 
         public void DisableScreen()

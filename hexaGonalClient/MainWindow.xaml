@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:hexaGoNal"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800" Background="Black">
+        Title="MainWindow" Height="600" Width="900" Background="Black">
     <Grid Name="grMain">
         <Grid.RowDefinitions>
             <RowDefinition Height="50px"></RowDefinition>

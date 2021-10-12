@@ -25,8 +25,6 @@ namespace hexaGoNal.game
         private readonly List<Player> players = new();
         private int activePlayer;
 
-        WinRoundScreen winText = new();
-
         private bool isDrag = false;
         ScreenScroller scroller;
 
@@ -109,6 +107,13 @@ namespace hexaGoNal.game
             isPreview = true;
             //state = GameState.Preview;
             dots.Clear();
+        }
+
+        private void NextRound()
+        {
+            //TODO move offset away form current game
+            //TODO previous winner has to play first
+            //TODO disable old dots from counting as a win or clear board entirely
         }
 
         private Vector CoordsToScreen(Coords c)
@@ -210,8 +215,9 @@ namespace hexaGoNal.game
                     foreach (Coords c in winRow)
                         if (dots[c] != null)
                             dots[c].State = DotState.WIN;
-                    
+
                     //TODO end game
+                    players[activePlayer].Score++;
                     Console.WriteLine("Winner: " + players[activePlayer].Name);
                     isPreview = false;
                     AnimateWin(winRow, players[activePlayer]);
@@ -261,18 +267,17 @@ namespace hexaGoNal.game
             winPos /= winRow.Count;
             scroller.AnimateScroll(-winPos - new Vector(0, ActualHeight / 4), 1200);
 
-            
+            WinRoundScreen winText = new();
             winText.Opacity = 0;
             winText.EnableScreen(winPlayer, players);
 
             if (!offCan.Children.Contains(winText))
                 offCan.Children.Add(winText);
 
-            animator.RegisterAnimation(AnimationStyle.EaseOut, 666, (k, x) => winText.Opacity = x);
-
-            //TODO figure out size before first draw or maybe just adjust in next frame (figure out!) since opacity should be 0 anyway 
-            winText.Measure(DesiredSize);
-            Vector textPos = winPos + new Vector(-winText.DesiredSize.Width / 2, 50);
+            animator.RegisterAnimation(AnimationStyle.EaseIn, 1500, (k, x) => winText.Opacity = x);
+            
+            Vector textPos = winPos + new Vector(-winText.ActualWidth / 2, 50);
+            winText.DisplWidthOffset = winText.ActualWidth > 1;
             SetLeft(winText, textPos.X);
             SetTop(winText, textPos.Y);
         }
