@@ -14,9 +14,7 @@ namespace hexaGoNal
     class Dot
     {
         private readonly Ellipse shape = new Ellipse();
-        private SolidColorBrush fill;
         private Player player;
-
         private Action undoState;
 
         //TODO add state LastPlaced to show the next player what happened
@@ -33,9 +31,7 @@ namespace hexaGoNal
         public Dot(Player p, double diam)
         {
             player = p;
-            fill = new SolidColorBrush();
-            fill.Color = p.Color;
-            shape.Fill = fill;
+            shape.Fill = player.Brush;
             shape.Height = diam;
             shape.Width = diam;
 
@@ -54,12 +50,12 @@ namespace hexaGoNal
                     break;
 
                 case DotState.PREVIEW:
-                    shape.Stroke = shape.Fill.Clone();
+                    shape.Stroke = player.Brush;
                     shape.Fill = new SolidColorBrush(Colors.Transparent);
                     shape.StrokeThickness = 4;
                     undoState = () =>
                     {
-                        shape.Fill = new SolidColorBrush(player.Color);
+                        shape.Fill = player.Brush;
                         shape.StrokeThickness = 0;
                     };
                     break;

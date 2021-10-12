@@ -12,6 +12,7 @@ using hexaGonalClient.game;
 using System.Diagnostics;
 using static hexaGoNal.Dot;
 using static hexaGonalClient.game.Animator;
+using hexaGonalClient;
 
 namespace hexaGoNal.game
 {
@@ -23,6 +24,8 @@ namespace hexaGoNal.game
         
         private readonly List<Player> players = new();
         private int activePlayer;
+
+        WinRoundScreen winText = new();
 
         private bool isDrag = false;
         ScreenScroller scroller;
@@ -174,8 +177,8 @@ namespace hexaGoNal.game
                 if (prevCoords != lastPrevCoords)
                 {
                     Vector dotOffset = CoordsToScreen(prevCoords);
-                    Canvas.SetLeft(prevDot.Shape, dotOffset.X - dotDiameter / 2);
-                    Canvas.SetTop(prevDot.Shape, dotOffset.Y - dotDiameter / 2);
+                    SetLeft(prevDot.Shape, dotOffset.X - dotDiameter / 2);
+                    SetTop(prevDot.Shape, dotOffset.Y - dotDiameter / 2);
                 }
 
                 if (dots.ContainsKey(prevCoords))
@@ -209,9 +212,11 @@ namespace hexaGoNal.game
                             dots[c].State = DotState.WIN;
                     
                     //TODO end game
-                    //TODO announce win
-                    Console.WriteLine("Winner: " + players[activePlayer].Name + " " + winRow);
+                    Console.WriteLine("Winner: " + players[activePlayer].Name);
                     isPreview = false;
+                    AnimateWin(winRow, players[activePlayer]);
+                    // game state! 
+                    //TODO game state which waitTODOs for next left click to continue while displaying round results and score
                     return;
                 }
 
@@ -220,7 +225,7 @@ namespace hexaGoNal.game
             }
         }
 
-        public void AnimatePlaceDot(Dot dot, Coords c)
+        private void AnimatePlaceDot(Dot dot, Coords c)
         {
             Vector pos = CoordsToScreen(c);
             Ellipse disc = new()
@@ -239,11 +244,37 @@ namespace hexaGoNal.game
                 double diam = dotDiameter + dotDiameter * 2 * x;
                 disc.Height = diam;
                 disc.Width = diam;
-                Canvas.SetLeft(disc, pos.X - disc.Width / 2);
-                Canvas.SetTop(disc, pos.Y - disc.Height / 2);
+                SetLeft(disc, pos.X - disc.Width / 2);
+                SetTop(disc, pos.Y - disc.Height / 2);
                 disc.Opacity = 1 - x;
             });
             anim.AnimationFinished = () => offCan.Children.Remove(disc);
+        }
+
+
+        private void AnimateWin(List<Coords> winRow, Player winPlayer)
+        {
+            Vector winPos = new();
+            foreach (Vector v in winRow.Select(CoordsToScreen))
+                winPos += v;
+
+            winPos /= winRow.Count;
+            scroller.AnimateScroll(-winPos - new Vector(0, ActualHeight / 4), 1200);
+
+            
+            winText.Opacity = 0;
+            winText.EnableScreen(winPlayer, players);
+
+            if (!offCan.Children.Contains(winText))
+                offCan.Children.Add(winText);
+
+            animator.RegisterAnimation(AnimationStyle.EaseOut, 666, (k, x) => winText.Opacity = x);
+
+            //TODO figure out size before first draw or maybe just adjust in next frame (figure out!) since opacity should be 0 anyway 
+            winText.Measure(DesiredSize);
+            Vector textPos = winPos + new Vector(-winText.DesiredSize.Width / 2, 50);
+            SetLeft(winText, textPos.X);
+            SetTop(winText, textPos.Y);
         }
 
         private void OnMouseUp(object sender, MouseButtonEventArgs e)

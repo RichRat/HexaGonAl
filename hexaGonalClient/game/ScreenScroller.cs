@@ -31,6 +31,7 @@ namespace hexaGonalClient.game
             this.canv = canv;
         }
 
+        public void SetOffset() => SetOffset(null, null);
 
         public void SetOffset(Object sender, EventArgs e)
         {
@@ -91,6 +92,16 @@ namespace hexaGonalClient.game
         {
             get => offset;
             set => offset = value;
+        }
+
+        internal void AnimateScroll(Vector scrollTarget, int durationMs)
+        {
+            animator.UnregisterAnimation("animate scroll");
+            Vector startOffset = offset;
+            animator.RegisterAnimation("animate scroll", Animator.AnimationStyle.EaseInOut, durationMs, (k, x) => {
+                offset = x * scrollTarget + (1 - x) * startOffset;
+                SetOffset();
+            });
         }
     }
 }
