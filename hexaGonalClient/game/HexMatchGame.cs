@@ -28,7 +28,6 @@ namespace hexaGoNal.game
         private bool isDrag = false;
         ScreenScroller scroller;
 
-        private bool isPreview = true;
         private Coords prevCoords;
         private Dot prevDot;
 
@@ -38,7 +37,7 @@ namespace hexaGoNal.game
         private Vector xAxsis = new(1, 0);
         private Vector yAxsis = new(Math.Cos(yAchisRad), Math.Sin(yAchisRad));
 
-        private GameState state = GameState.Preview;
+        private GameState state = GameState.Turn;
 
         private readonly Animator animator;
 
@@ -46,12 +45,14 @@ namespace hexaGoNal.game
 
         public enum GameState
         {
-            Preview = 0,
+            Turn = 0,
             PlayerTransition = 1,
-            GameTransition = 2,
-            GameFinished = 0xF0
+            RoundTransition = 2,
+            WaitingForTurn = 4,
+            GameFinished = 32
         }
 
+        // coords for all possible directions
         private static readonly Coords[] neighboursCoords = {
             new Coords(1, 0),
             new Coords(-1, 0),
@@ -61,6 +62,7 @@ namespace hexaGoNal.game
             new Coords(0, -1)
         };
 
+        // coord directions for every possible axis
         private static readonly Coords[] directionCoords =
         {
             new Coords(1, 0),
@@ -73,28 +75,26 @@ namespace hexaGoNal.game
             animator = new(this);
             scroller = new(offCan, this, animator);
 
-            this.ClipToBounds = true;
-            this.Children.Add(offCan);
-            this.Background = new SolidColorBrush(Color.FromRgb(0x11, 0x11, 0x11));
-            
-            
-            this.SizeChanged += scroller.SetOffset;
-            this.MouseDown += OnMouseDown;
-            this.MouseUp += OnMouseUp;
-            this.MouseLeave += OnMouseLeave;
-            this.MouseMove += OnMouseMove;
-
-
+            Children.Add(offCan);
             offCan.ClipToBounds = false;
-            scroller.SetOffset(null, null);
+
+            ClipToBounds = true;
+            Background = new SolidColorBrush(Color.FromRgb(0x11, 0x11, 0x11));
+            SizeChanged += scroller.SetOffset;
+            MouseDown += OnMouseDown;
+            MouseUp += OnMouseUp;
+            MouseLeave += OnMouseLeave;
+            MouseMove += OnMouseMove;
+
+            scroller.SetOffset();
         }
 
         public void StartGame()
         {
-            System.Console.WriteLine("Start Game");
+            Console.WriteLine("Start Game");
             //clear up previous game
             scroller.Offset = new Vector();
-            scroller.SetOffset(null, null);
+            scroller.SetOffset();
 
             players.Clear();
             //todo enable custom names and colors(?)
@@ -104,16 +104,24 @@ namespace hexaGoNal.game
             PlayerChanged?.Invoke(this, players[activePlayer]);
 
             offCan.Children.Clear();
-            isPreview = true;
-            //state = GameState.Preview;
+            state = GameState.Turn;
             dots.Clear();
         }
 
         private void NextRound()
         {
-            //TODO move offset away form current game
-            //TODO previous winner has to play first
-            //TODO disable old dots from counting as a win or clear board entirely
+            state = GameState.RoundTransition;
+            double bottomDotY = dots.Keys.Select(CoordsToScreen).Select(v => v.Y).Max();
+            scroller.AnimateScroll(new Vector(scroller.Offset.X, -(bottomDotY + ActualHeight + dotSpacing)), 1200)
+                .AnimationFinished = () =>
+                {
+                    state = GameState.Turn;
+                    dots.Clear();
+                    offCan.Children.Clear();
+                    scroller.Offset = new Vector();
+                    scroller.SetOffset();
+                };
+            //TODO disable old dots from counting as a win or clear board entirely ~ currently just clean everything up
         }
 
         private Vector CoordsToScreen(Coords c)
@@ -168,7 +176,7 @@ namespace hexaGoNal.game
             if (isDrag)
                 scroller.OnDrag(sender, e);
 
-            if (isPreview)
+            if (state == GameState.Turn)
             {
                 if (prevDot == null)
                 {
@@ -202,7 +210,13 @@ namespace hexaGoNal.game
                 scroller.StartDrag(sender, e);
             }
 
-            if (isPreview && e.ChangedButton == MouseButton.Left && !dots.ContainsKey(prevCoords))
+            if (state == GameState.RoundTransition && e.ChangedButton == MouseButton.Left)
+            {
+                NextRound();
+                return;
+            }
+
+            if (state == GameState.Turn && e.ChangedButton == MouseButton.Left && !dots.ContainsKey(prevCoords))
             {
                 dots.Add(prevCoords ,prevDot);
                 prevDot.State = DotState.DEFALUT;
@@ -213,16 +227,15 @@ namespace hexaGoNal.game
                 if (winRow.Count > 4)
                 {
                     foreach (Coords c in winRow)
+                    {
                         if (dots[c] != null)
                             dots[c].State = DotState.WIN;
+                    }
 
-                    //TODO end game
                     players[activePlayer].Score++;
                     Console.WriteLine("Winner: " + players[activePlayer].Name);
-                    isPreview = false;
+                    state = GameState.RoundTransition;
                     AnimateWin(winRow, players[activePlayer]);
-                    // game state! 
-                    //TODO game state which waitTODOs for next left click to continue while displaying round results and score
                     return;
                 }
 

@@ -94,11 +94,11 @@ namespace hexaGonalClient.game
             set => offset = value;
         }
 
-        internal void AnimateScroll(Vector scrollTarget, int durationMs)
+        internal Animation AnimateScroll(Vector scrollTarget, int durationMs)
         {
             animator.UnregisterAnimation("animate scroll");
             Vector startOffset = offset;
-            animator.RegisterAnimation("animate scroll", Animator.AnimationStyle.EaseInOut, durationMs, (k, x) => {
+            return animator.RegisterAnimation("animate scroll", Animator.AnimationStyle.EaseInOut, durationMs, (k, x) => {
                 offset = x * scrollTarget + (1 - x) * startOffset;
                 SetOffset();
             });
