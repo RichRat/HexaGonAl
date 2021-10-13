@@ -1,18 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows;
 using System.Windows.Shapes;
 using System.Windows.Media;
 using System.Windows.Input;
 using hexaGonalClient.game;
-using System.Diagnostics;
 using static hexaGoNal.Dot;
 using static hexaGonalClient.game.Animator;
 using hexaGonalClient;
+using System.Windows.Media.Effects;
 
 namespace hexaGoNal.game
 {
@@ -24,10 +22,10 @@ namespace hexaGoNal.game
         
         private readonly List<Player> players = new();
         private int activePlayer;
+        private GameState state = GameState.Turn;
 
-        private bool isDrag = false;
         ScreenScroller scroller;
-
+        private bool isDrag = false;
         private Coords prevCoords;
         private Dot prevDot;
 
@@ -37,10 +35,7 @@ namespace hexaGoNal.game
         private Vector xAxsis = new(1, 0);
         private Vector yAxsis = new(Math.Cos(yAchisRad), Math.Sin(yAchisRad));
 
-        private GameState state = GameState.Turn;
-
         private readonly Animator animator;
-
         public event EventHandler<Player> PlayerChanged;
 
         public enum GameState
@@ -106,6 +101,7 @@ namespace hexaGoNal.game
             offCan.Children.Clear();
             state = GameState.Turn;
             dots.Clear();
+            AnimatePlayerTurn(players[activePlayer]);
         }
 
         private void NextRound()
@@ -137,7 +133,6 @@ namespace hexaGoNal.game
         /// <returns>Coordinates in the game space</returns>
         private Coords ScreenToCoords(Vector pos)
         {
-
             //y axis is just y component of yAchsis vector 
             int y = (int)Math.Round(pos.Y / yAxsis.Y / dotSpacing);
 
@@ -241,6 +236,7 @@ namespace hexaGoNal.game
 
                 activePlayer = ++activePlayer % players.Count;
                 PlayerChanged?.Invoke(this, players[activePlayer]);
+                AnimatePlayerTurn(players[activePlayer]);
             }
         }
 
@@ -293,6 +289,41 @@ namespace hexaGoNal.game
             winText.DisplWidthOffset = winText.ActualWidth > 1;
             SetLeft(winText, textPos.X);
             SetTop(winText, textPos.Y);
+        }
+
+        private void AnimatePlayerTurn(Player p)
+        {
+            TextBlock text = new TextBlock
+            {
+                Text = p.Name + "'s Turn",
+                FontSize = 25,
+                Foreground = p.Brush,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                FontWeight = FontWeights.ExtraBold,
+                Effect = new DropShadowEffect
+                {
+                    ShadowDepth = 0,
+                    BlurRadius = 15,
+                    Color = Colors.Black
+                }
+            };
+
+            Children.Add(text);
+            SetLeft(text, 0);
+            SetTop(text, -300);
+            animator.RegisterAnimation(AnimationStyle.EaseOut, 500, (_, x) =>
+            {
+                SetTop(text, (-text.ActualHeight - 16) * (1 - x));
+            });
+
+            animator.RegisterAnimation(AnimationStyle.EaseOut, 2500, (_, x) =>
+            {
+                if (x > 3 / 4)
+                {
+                    x = (x - 0.5) * 4;
+                    text.Opacity = 1 - x;
+                }
+            }).AnimationFinished = () => Children.Remove(text);
         }
 
         private void OnMouseUp(object sender, MouseButtonEventArgs e)
