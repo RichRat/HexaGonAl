@@ -7,6 +7,10 @@
              mc:Ignorable="d" 
              d:DesignHeight="340" d:DesignWidth="500">
     <StackPanel Name="stackMain" Orientation="Vertical">
+        <StackPanel.Effect>
+            <DropShadowEffect BlurRadius="16" Color="Black" Opacity="1" ShadowDepth="0">
+            </DropShadowEffect>
+        </StackPanel.Effect>
         <TextBlock Name="txtWinner" Text="Sample Text" Foreground="White" FontSize="50" HorizontalAlignment="Center" FontWeight="ExtraBold" Margin="0 15px"></TextBlock>
         <Rectangle Height="2px" Fill="White"></Rectangle>
         <TextBlock Text="Score" Foreground="White" FontSize="20" HorizontalAlignment="Center" FontWeight="Bold" Margin="0 15px 0 0"></TextBlock>

@@ -23,11 +23,14 @@ namespace hexaGoNal.game
         private readonly List<Player> players = new();
         private int activePlayer;
         private GameState state = GameState.Turn;
-
-        ScreenScroller scroller;
+        private readonly ScreenScroller scroller;
         private bool isDrag = false;
+
+        // preview 
         private Coords prevCoords;
         private Dot prevDot;
+        // highlight last placed dot
+        private Dot lastPlacedDot = null;
 
         private double dotSpacing = 26;
         private double dotDiameter = 22;
@@ -80,8 +83,15 @@ namespace hexaGoNal.game
             MouseUp += OnMouseUp;
             MouseLeave += OnMouseLeave;
             MouseMove += OnMouseMove;
+            MouseWheel += OnMouseWheel; ; 
 
             scroller.SetOffset();
+        }
+
+        private void OnMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            
+            //TODO https://stackoverflow.com/questions/33185482/how-to-programmatically-change-the-scale-of-a-canvas
         }
 
         public void StartGame()
@@ -95,6 +105,9 @@ namespace hexaGoNal.game
             //todo enable custom names and colors(?)
             players.Add(new Player(Colors.Orange, "Player 1"));
             players.Add(new Player(Colors.Cyan, "Player 2"));
+            //players.Add(new Player(Color.FromRgb(255, 93, 0), "Master Blaster"));
+            //players.Add(new Player(Color.FromRgb(0, 101, 255), "Max Power"));
+
             activePlayer = 0;
             PlayerChanged?.Invoke(this, players[activePlayer]);
 
@@ -176,7 +189,7 @@ namespace hexaGoNal.game
                 if (prevDot == null)
                 {
                     prevDot = new Dot(players[activePlayer], dotDiameter);
-                    prevDot.State = DotState.PREVIEW;
+                    prevDot.State = DotState.Preview;
                     offCan.Children.Add(prevDot.Shape);
                 }
 
@@ -197,6 +210,8 @@ namespace hexaGoNal.game
             }
         }
 
+        
+
         private void OnMouseDown(object sender, MouseButtonEventArgs e)
         {
             if (!isDrag && e.RightButton == MouseButtonState.Pressed)
@@ -214,8 +229,12 @@ namespace hexaGoNal.game
             if (state == GameState.Turn && e.ChangedButton == MouseButton.Left && !dots.ContainsKey(prevCoords))
             {
                 dots.Add(prevCoords ,prevDot);
-                prevDot.State = DotState.DEFALUT;
+                prevDot.State = DotState.LastPlaced;
                 AnimatePlaceDot(prevDot, prevCoords);
+                if (lastPlacedDot != null)
+                    lastPlacedDot.State = DotState.Default;
+
+                lastPlacedDot = prevDot;
                 prevDot = null;
                 
                 List<Coords> winRow = CheckWin(prevCoords, players[activePlayer]);
@@ -224,7 +243,7 @@ namespace hexaGoNal.game
                     foreach (Coords c in winRow)
                     {
                         if (dots[c] != null)
-                            dots[c].State = DotState.WIN;
+                            dots[c].State = DotState.Win;
                     }
 
                     players[activePlayer].Score++;
@@ -247,7 +266,7 @@ namespace hexaGoNal.game
             {
                 Height = dot.Shape.Height,
                 Width = dot.Shape.Width,
-                Fill = new SolidColorBrush(Util.ChangeColorBrightness(dot.Player.Color, 0.8)),
+                Fill = new SolidColorBrush(Util.ModColBrightness(dot.Player.Color, 0.8)),
                 Opacity = 0
             };
 

@@ -4,7 +4,7 @@ using static hexaGonalClient.game.Animator;
 
 namespace hexaGonalClient.game
 {
-    class Animation
+    internal class Animation
     {
         public long Duration;
         public long TargetTime;

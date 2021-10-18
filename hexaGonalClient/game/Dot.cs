@@ -17,15 +17,15 @@ namespace hexaGoNal
         private Player player;
         private Action undoState;
 
-        //TODO add state LastPlaced to show the next player what happened
         public enum DotState
         {
-            DEFALUT = 0,
-            PREVIEW = 1,
-            WIN = 2
+            Default = 0,
+            Preview = 1,
+            Win = 2,
+            LastPlaced = 4
         }
 
-        private DotState state = DotState.DEFALUT;
+        private DotState state = DotState.Default;
         private DotState prevState;
 
         public Dot(Player p, double diam)
@@ -46,10 +46,10 @@ namespace hexaGoNal
 
             switch (state)
             {
-                case DotState.DEFALUT:
+                case DotState.Default:
                     break;
 
-                case DotState.PREVIEW:
+                case DotState.Preview:
                     shape.Stroke = player.Brush;
                     shape.Fill = new SolidColorBrush(Colors.Transparent);
                     shape.StrokeThickness = 4;
@@ -60,12 +60,12 @@ namespace hexaGoNal
                     };
                     break;
 
-                case DotState.WIN:
+                case DotState.Win:
                     shape.Stroke = new SolidColorBrush(Colors.White);
                     shape.StrokeThickness = 2;
                     shape.Effect = new DropShadowEffect {
                         ShadowDepth = 0,
-                        Color = Util.ChangeColorBrightness(player.Color, 0.2),
+                        Color = Util.ModColBrightness(player.Color, 0.2),
                         Opacity = 1,
                         BlurRadius = 64
                     };
@@ -74,6 +74,17 @@ namespace hexaGoNal
                         shape.StrokeThickness = 0;
                         shape.Effect = null;
                     };
+                    break;
+
+                case DotState.LastPlaced:
+                    shape.Effect = new DropShadowEffect
+                    {
+                        ShadowDepth = 0,
+                        Color = Util.ModColBrightness(player.Color, 0.2),
+                        Opacity = 1,
+                        BlurRadius = 16
+                    };
+                    undoState = () => shape.Effect = null;
                     break;
 
                 default:

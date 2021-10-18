@@ -9,7 +9,7 @@ namespace hexaGonalClient.game
 {
     class Util
     {
-        public static Color ChangeColorBrightness(Color color, double correctionFactor)
+        public static Color ModColBrightness(Color color, double correctionFactor)
         {
             double r = (double)color.R;
             double g = (double)color.G;
