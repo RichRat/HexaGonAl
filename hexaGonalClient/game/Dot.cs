@@ -92,9 +92,6 @@ namespace hexaGoNal
             }
         }
 
-        //TODO move to util class
-  
-
         public Shape Shape => shape;
 
         public DotState State

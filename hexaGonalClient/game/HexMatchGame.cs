@@ -130,7 +130,6 @@ namespace hexaGoNal.game
                     scroller.Offset = new Vector();
                     scroller.SetOffset();
                 };
-            //TODO disable old dots from counting as a win or clear board entirely ~ currently just clean everything up
         }
 
         private Vector CoordsToScreen(Coords c)
