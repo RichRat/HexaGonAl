@@ -7,8 +7,9 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <StackPanel Orientation="Vertical">
+        <Canvas Name="canvOverlay" Height="1" Width="1" ClipToBounds="False" HorizontalAlignment="Left"></Canvas>
         <TextBlock x:Name="txtHeader" Text="Game Setup" FontSize="50" FontWeight="ExtraBold" TextAlignment="Center" Foreground="White"></TextBlock>
-        <Grid Margin="30 30">
+        <Grid Margin="30 30" Visibility="Visible">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="220"></ColumnDefinition>
                 <ColumnDefinition></ColumnDefinition>
@@ -21,12 +22,11 @@
 
             <TextBlock Text="Player 1 Name:" Grid.Row="0" Grid.Column="0" Foreground="White" TextAlignment="Right" FontSize="25" FontWeight="Bold" Margin="10" VerticalAlignment="Center"></TextBlock>
             <TextBlock Text="Player 2 Name:" Grid.Row="1" Grid.Column="0" Foreground="White" TextAlignment="Right" FontSize="25" FontWeight="Bold" Margin="10" VerticalAlignment="Center"></TextBlock>
-            <TextBox Name="inpPlayer1" Grid.Row="0" Grid.Column="1" Margin="5" GotFocus="inpPlayer1_GotFocus" Height="38" FontSize="25">Player 1</TextBox>
-            <TextBox Name="inpPlayer2" Grid.Row="1" Grid.Column="1" Margin="5" GotFocus="inpPlayer2_GotFocus" Height="38" FontSize="25">Player 2</TextBox>
+            <TextBox Name="inpPlayer1" Grid.Row="0" Grid.Column="1" Margin="5" GotFocus="inpPlayer1_GotFocus" TextChanged="inpPlayer1_TextChanged" Height="38" FontSize="23" Background="#444444" Foreground="LightGray" BorderBrush="Orange" BorderThickness="3" Padding="1">Player 1</TextBox>
+            <TextBox Name="inpPlayer2" Grid.Row="1" Grid.Column="1" Margin="5" GotFocus="inpPlayer2_GotFocus" TextChanged="inpPlayer2_TextChanged" Height="38" FontSize="23" Background="#444444" Foreground="LightGray" BorderBrush="Cyan" BorderThickness="3" Padding="1">Player 2</TextBox>
             <Rectangle Name="colPlayer1" Grid.Row="0" Grid.Column="2" Margin="15" Fill="Orange" MouseDown="colPlayer1_MouseDown" Height="38"></Rectangle>
-            <Rectangle Name="colPlayer2" Grid.Row="12" Grid.Column="2" Margin="15" Fill="Cyan" MouseDown="colPlayer1_MouseDown" Height="38"></Rectangle>
-            
+            <Rectangle Name="colPlayer2" Grid.Row="12" Grid.Column="2" Margin="15" Fill="Cyan" MouseDown="colPlayer2_MouseDown" Height="38"></Rectangle>
         </Grid>
-        <Button Name="btnStartGame" Height="42px" Width="168" FontSize="24" FontWeight="Bold" Background="#444444" Foreground="White">Start Game</Button>
+        <Button Name="btnStartGame" Height="42px" Width="168" FontSize="24" FontWeight="Bold" Background="#444444" Foreground="White" Click="btnStartGame_Click">Start Game</Button>
     </StackPanel>
 </UserControl>

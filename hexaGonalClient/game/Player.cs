@@ -9,19 +9,17 @@ namespace hexaGoNal
 {
     public class Player
     {
-        private Color col;
-        private String name;
 
         public Player(Color col, String name)
         {
-            this.col = col;
-            this.name = name;
+            Color = col;
+            Name = name;
             Score = 0;
         }
 
-        public String Name => name;
+        public String Name { get; set; }
 
-        public Color Color => col;
+        public Color Color { get; set; }
 
         public int Score { get; set; }
 

@@ -1,0 +1,16 @@
+﻿<UserControl x:Class="hexaGonalClient.game.util.ColorSwatches"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:hexaGonalClient.game.util"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="300">
+    <StackPanel Orientation="Vertical" Background="#333">
+        <TextBlock Text="Select Color" FontSize="30" FontWeight="ExtraBold" Foreground="White"></TextBlock>
+        <Rectangle Height="2" Fill="White" Margin="2 10"></Rectangle>
+        <UniformGrid Name="ugGrid" Columns="5">
+        </UniformGrid>
+        <Button Name="btnAbort" Height="42px" Width="168" FontSize="24" FontWeight="Bold" Background="#444444" Foreground="White" Click="btnAbort_Click">Abort</Button>
+    </StackPanel>
+</UserControl>

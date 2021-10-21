@@ -96,6 +96,7 @@ namespace hexaGoNal.game
 
         public void StartGame()
         {
+            //TODO fix bug: No Preview on reset ?!?
             Console.WriteLine("Start Game");
             //clear up previous game
             scroller.Offset = new Vector();

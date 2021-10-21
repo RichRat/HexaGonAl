@@ -13,6 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using hexaGoNal.game;
+using hexaGonalClient.game;
 
 namespace hexaGoNal
 {
@@ -28,6 +29,14 @@ namespace hexaGoNal
         {
             InitializeComponent();
 
+            GameSetupScreen gss = new();
+            Grid.SetRow(gss, 2);
+            grMain.Children.Add(gss);
+
+        }
+
+        private void startGame()
+        {
             game = new();
             Grid.SetRow(game, 2);
             grMain.Children.Add(game);

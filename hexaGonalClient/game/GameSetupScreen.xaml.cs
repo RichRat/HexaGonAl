@@ -1,4 +1,6 @@
-﻿using System;
+﻿using hexaGoNal;
+using hexaGonalClient.game.util;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -21,6 +23,12 @@ namespace hexaGonalClient.game
     public partial class GameSetupScreen : UserControl
     {
         //TODO implement!!
+        Player p1 = new(Colors.Orange, "Player 1");
+        Player p2 = new(Colors.Cyan, "Player 2");
+        bool inpP1init = false;
+        bool inpP2init = false;
+        public event EventHandler<List<Player>> StartGame;
+
         public GameSetupScreen()
         {
             InitializeComponent();
@@ -28,22 +36,65 @@ namespace hexaGonalClient.game
 
         private void colPlayer1_MouseDown(object sender, MouseButtonEventArgs e)
         {
-
+            SelectPlayerColor(p1, colPlayer1, inpPlayer1);
         }
 
-        private void colPlayer1_MouseDown_1(object sender, MouseButtonEventArgs e)
+        private void colPlayer2_MouseDown(object sender, MouseButtonEventArgs e)
         {
+            SelectPlayerColor(p2, colPlayer2, inpPlayer2);
+        }
 
+        private void SelectPlayerColor(Player p, Rectangle rect, TextBox inp)
+        {
+            ColorSwatches cs = new()
+            {
+                Width = ActualWidth * 0.666,
+                Height = ActualHeight - 40
+            };
+        }
+
+        private Color PickColor()
+        {
+            //TODO implement pick color
+            return Colors.Transparent;
         }
 
         private void inpPlayer1_GotFocus(object sender, RoutedEventArgs e)
         {
-
+            if (inpP1init)
+            {
+                inpPlayer1.Text = "";
+                inpPlayer1.Foreground = new SolidColorBrush(Colors.White);
+                inpP1init = false;
+            }
         }
 
         private void inpPlayer2_GotFocus(object sender, RoutedEventArgs e)
         {
+            if (inpP2init)
+            {
+                inpPlayer2.Text = "";
+                inpPlayer2.Foreground = new SolidColorBrush(Colors.White);
+                inpP2init = false;
+            }
+        }
 
+        private void inpPlayer1_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (inpPlayer1.Text.Length > 0)
+                p1.Name = inpPlayer1.Text;
+        }
+
+        private void inpPlayer2_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (inpPlayer2.Text.Length > 0)
+                p1.Name = inpPlayer2.Text;
+        }
+
+        private void btnStartGame_Click(object sender, RoutedEventArgs e)
+        {
+            if (StartGame != null)
+                StartGame.Invoke(this, new() { p1, p2 });
         }
     }
 }
