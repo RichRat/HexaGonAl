@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:hexaGonalClient.game.util"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="300">
-    <StackPanel Orientation="Vertical" Background="#333">
+    <StackPanel Orientation="Vertical" Background="Black">
         <TextBlock Text="Select Color" FontSize="30" FontWeight="ExtraBold" Foreground="White"></TextBlock>
         <Rectangle Height="2" Fill="White" Margin="2 10"></Rectangle>
         <UniformGrid Name="ugGrid" Columns="5">

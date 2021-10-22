@@ -11,6 +11,7 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
@@ -22,7 +23,6 @@ namespace hexaGonalClient.game
     /// </summary>
     public partial class GameSetupScreen : UserControl
     {
-        //TODO implement!!
         Player p1 = new(Colors.Orange, "Player 1");
         Player p2 = new(Colors.Cyan, "Player 2");
         bool inpP1init = false;
@@ -32,6 +32,8 @@ namespace hexaGonalClient.game
         public GameSetupScreen()
         {
             InitializeComponent();
+            //TODO implement removing the "sample text" from the textboxes
+            //TODO animate opacity
         }
 
         private void colPlayer1_MouseDown(object sender, MouseButtonEventArgs e)
@@ -48,8 +50,21 @@ namespace hexaGonalClient.game
         {
             ColorSwatches cs = new()
             {
-                Width = ActualWidth * 0.666,
+                Width = ActualWidth * 2 / 3,
                 Height = ActualHeight - 40
+            };
+
+            Canvas.SetLeft(cs, ActualWidth / 6);
+            Canvas.SetTop(cs, 20);
+
+            canvOverlay.Children.Add(cs);
+            cs.Aborted += (o, e) => canvOverlay.Children.Remove(cs);
+            cs.ColorSelected += (e, c) =>
+            {
+                p.Color = c;
+                rect.Fill = p.Brush;
+                inp.BorderBrush = p.Brush;
+                canvOverlay.Children.Remove(cs);
             };
         }
 

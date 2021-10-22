@@ -94,20 +94,26 @@ namespace hexaGoNal.game
             //TODO https://stackoverflow.com/questions/33185482/how-to-programmatically-change-the-scale-of-a-canvas
         }
 
-        public void StartGame()
+        /// <summary>
+        /// start game with previous settings
+        /// </summary>
+        public void StartGame() => StartGame(new List<Player>(players));
+
+        /// <summary>
+        /// start game with given players
+        /// </summary>
+        /// <param name="players">list of players</param>
+        public void StartGame(List<Player> pl)
         {
             //TODO fix bug: No Preview on reset ?!?
             Console.WriteLine("Start Game");
+            
             //clear up previous game
             scroller.Offset = new Vector();
             scroller.SetOffset();
 
             players.Clear();
-            //todo enable custom names and colors(?)
-            players.Add(new Player(Colors.Orange, "Player 1"));
-            players.Add(new Player(Colors.Cyan, "Player 2"));
-            //players.Add(new Player(Color.FromRgb(255, 93, 0), "Master Blaster"));
-            //players.Add(new Player(Color.FromRgb(0, 101, 255), "Max Power"));
+            players.AddRange(pl);
 
             activePlayer = 0;
             PlayerChanged?.Invoke(this, players[activePlayer]);

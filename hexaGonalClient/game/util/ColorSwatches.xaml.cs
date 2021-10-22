@@ -13,6 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Reflection;
+using System.Windows.Media.Effects;
 
 namespace hexaGonalClient.game.util
 {
@@ -46,7 +47,13 @@ namespace hexaGonalClient.game.util
         public ColorSwatches()
         {
             InitializeComponent();
-            
+
+            this.Effect = new DropShadowEffect
+            {
+                ShadowDepth = 0,
+                Color = Colors.Black,
+                BlurRadius = 15
+            };
 
             foreach (Color c in cols)
             {
@@ -55,7 +62,9 @@ namespace hexaGonalClient.game.util
                     Fill = new SolidColorBrush(c),
                     Margin = new Thickness(5),
                     Stroke = new SolidColorBrush(Util.ModColBrightness(c, -0.4)),
-                    StrokeThickness = 0
+                    StrokeThickness = 0,
+                    MinWidth = 32,
+                    MinHeight = 32
                 };
 
                 rect.MouseDown += Rect_MouseDown;

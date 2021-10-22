@@ -31,19 +31,18 @@ namespace hexaGoNal
 
             GameSetupScreen gss = new();
             Grid.SetRow(gss, 2);
+            gss.StartGame += StartGame;
             grMain.Children.Add(gss);
 
         }
 
-        private void startGame()
+        private void StartGame(object sender, List<Player> p)
         {
             game = new();
             Grid.SetRow(game, 2);
             grMain.Children.Add(game);
-
             game.PlayerChanged += OnPlayerChanged;
-
-            game.StartGame();
+            game.StartGame(p);
         }
 
         private void OnPlayerChanged(object sender, Player pl)
@@ -53,7 +52,7 @@ namespace hexaGoNal
 
         private void btnReset_Click(object sender, RoutedEventArgs e)
         {
-            game.StartGame();
+            game?.StartGame();
         }
     }
 }
