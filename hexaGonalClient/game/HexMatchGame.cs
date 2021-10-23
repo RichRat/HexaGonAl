@@ -105,7 +105,6 @@ namespace hexaGoNal.game
         /// <param name="players">list of players</param>
         public void StartGame(List<Player> pl)
         {
-            //TODO fix bug: No Preview on reset ?!?
             Console.WriteLine("Start Game");
             
             //clear up previous game
@@ -122,6 +121,7 @@ namespace hexaGoNal.game
             state = GameState.Turn;
             dots.Clear();
             AnimatePlayerTurn(players[activePlayer]);
+            prevDot = null;
         }
 
         private void NextRound()

@@ -14,6 +14,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Reflection;
 using System.Windows.Media.Effects;
+using static hexaGonalClient.game.Animator;
 
 namespace hexaGonalClient.game.util
 {
@@ -34,6 +35,7 @@ namespace hexaGonalClient.game.util
             Colors.SeaGreen,
             Colors.Aqua,
             Colors.LightBlue,
+            Colors.Blue,
             Colors.Fuchsia,
             Colors.Magenta,
             Colors.BlueViolet
@@ -42,7 +44,7 @@ namespace hexaGonalClient.game.util
         public event EventHandler<Color> ColorSelected;
         public event EventHandler Aborted;
 
-        //TODO event for returning a color
+        private readonly Animator anim;
 
         public ColorSwatches()
         {
@@ -72,6 +74,10 @@ namespace hexaGonalClient.game.util
                 rect.MouseLeave += (o, e) => rect.StrokeThickness = 0;
                 ugGrid.Children.Add(rect);
             }
+
+            anim = new(this);
+            Opacity = 0;
+            anim.RegisterAnimation(AnimationStyle.EaseOut, 700, (o, x) => Opacity = x);
         }
 
         private void Rect_MouseDown(object sender, MouseButtonEventArgs e)
@@ -86,13 +92,21 @@ namespace hexaGonalClient.game.util
             }
 
             if (ColorSelected != null && c != Colors.Transparent)
-                ColorSelected.Invoke(this, c);
+                DelayResponse(() => ColorSelected.Invoke(this, c));
         }
 
         private void btnAbort_Click(object sender, RoutedEventArgs e)
         {
-            if (Aborted != null)
-                Aborted.Invoke(this, null);
+            if (Aborted == null)
+                return;
+
+            DelayResponse(() => Aborted.Invoke(this, null));
+        }
+
+        private void DelayResponse(Action a)
+        {
+            Animation an = anim.RegisterAnimation(AnimationStyle.EaseIn, 350, (_, x) => Opacity = (1 - x));
+            an.AnimationFinished = a;
         }
     }
 }

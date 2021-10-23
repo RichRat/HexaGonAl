@@ -29,11 +29,14 @@ namespace hexaGonalClient.game
         bool inpP2init = false;
         public event EventHandler<List<Player>> StartGame;
 
+        Animator anim;
+
         public GameSetupScreen()
         {
             InitializeComponent();
+            anim = new(this);
+            anim.RegisterAnimation(Animator.AnimationStyle.EaseIn, 300, (_, x) => Opacity = x);
             //TODO implement removing the "sample text" from the textboxes
-            //TODO animate opacity
         }
 
         private void colPlayer1_MouseDown(object sender, MouseButtonEventArgs e)
@@ -66,12 +69,6 @@ namespace hexaGonalClient.game
                 inp.BorderBrush = p.Brush;
                 canvOverlay.Children.Remove(cs);
             };
-        }
-
-        private Color PickColor()
-        {
-            //TODO implement pick color
-            return Colors.Transparent;
         }
 
         private void inpPlayer1_GotFocus(object sender, RoutedEventArgs e)
@@ -108,8 +105,11 @@ namespace hexaGonalClient.game
 
         private void btnStartGame_Click(object sender, RoutedEventArgs e)
         {
-            if (StartGame != null)
-                StartGame.Invoke(this, new() { p1, p2 });
+            if (StartGame == null)
+                return;
+
+            Animation an = anim.RegisterAnimation(Animator.AnimationStyle.EaseIn, 300, (_, x) => Opacity = (1 - x));
+            an.AnimationFinished = () => StartGame.Invoke(this, new() { p1, p2 });
         }
     }
 }
