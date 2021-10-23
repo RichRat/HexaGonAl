@@ -42,7 +42,20 @@ namespace hexaGoNal
             Grid.SetRow(game, 2);
             grMain.Children.Add(game);
             game.PlayerChanged += OnPlayerChanged;
+            game.RoundWon += OnRoundWon;
             game.StartGame(p);
+        }
+
+        private void OnRoundWon(object sender, Player p)
+        {
+            
+            spScore.Children.Add(new Ellipse
+            {
+                Height = 22,
+                Width = 22,
+                Fill = p.Brush,
+                Margin = new Thickness { Right = 12 }
+            });
         }
 
         private void OnPlayerChanged(object sender, Player pl)

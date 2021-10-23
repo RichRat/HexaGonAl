@@ -40,6 +40,7 @@ namespace hexaGoNal.game
 
         private readonly Animator animator;
         public event EventHandler<Player> PlayerChanged;
+        public event EventHandler<Player> RoundWon;
 
         public enum GameState
         {
@@ -90,7 +91,6 @@ namespace hexaGoNal.game
 
         private void OnMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            
             //TODO https://stackoverflow.com/questions/33185482/how-to-programmatically-change-the-scale-of-a-canvas
         }
 
@@ -255,6 +255,7 @@ namespace hexaGoNal.game
                     players[activePlayer].Score++;
                     Console.WriteLine("Winner: " + players[activePlayer].Name);
                     state = GameState.RoundTransition;
+                    RoundWon?.Invoke(this, players[activePlayer]);
                     AnimateWin(winRow, players[activePlayer]);
                     return;
                 }
@@ -314,6 +315,13 @@ namespace hexaGoNal.game
             winText.DisplWidthOffset = winText.ActualWidth > 1;
             SetLeft(winText, textPos.X);
             SetTop(winText, textPos.Y);
+
+            var nonWinList = from v in dots where !v.Value.IsWinDot() select v.Value;
+            animator.RegisterAnimation(AnimationStyle.EaseInOut, 1200, (_, x) =>
+            {
+                foreach (Dot d in nonWinList)
+                    d.Shape.Opacity = (1 + 1 - x) / 2;
+            });
         }
 
         private void AnimatePlayerTurn(Player p)

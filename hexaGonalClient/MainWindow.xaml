@@ -15,6 +15,7 @@
         <StackPanel Name="spMenue" Height="50px" Background="#222" Orientation="Horizontal">
             <TextBlock Foreground="#EEE" FontSize="22px" VerticalAlignment="Center" Margin="20px 0px" FontWeight="ExtraBold">HexaGonal</TextBlock>
             <Button Name="btnReset" Height="25px" Width="100" FlowDirection="RightToLeft" Click="btnReset_Click" Background="#222" BorderBrush="#EEE" BorderThickness="2" Foreground="#EEE">Reset</Button>
+            <StackPanel Name="spScore" Margin="22 0" Orientation="Horizontal" VerticalAlignment="Center"></StackPanel>
         </StackPanel>
         <Rectangle Grid.Row="1" Name="RectSpacer"  Height="8px" Fill="#444"></Rectangle>
 

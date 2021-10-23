@@ -23,20 +23,19 @@ namespace hexaGonalClient.game
     /// </summary>
     public partial class GameSetupScreen : UserControl
     {
-        Player p1 = new(Colors.Orange, "Player 1");
-        Player p2 = new(Colors.Cyan, "Player 2");
-        bool inpP1init = false;
-        bool inpP2init = false;
-        public event EventHandler<List<Player>> StartGame;
+        private Player p1 = new(Colors.Orange, "Player 1");
+        private Player p2 = new(Colors.Cyan, "Player 2");
+        private bool inpP1init = true;
+        private bool inpP2init = true;
+        private Animator anim;
 
-        Animator anim;
+        public event EventHandler<List<Player>> StartGame;
 
         public GameSetupScreen()
         {
             InitializeComponent();
             anim = new(this);
             anim.RegisterAnimation(Animator.AnimationStyle.EaseIn, 300, (_, x) => Opacity = x);
-            //TODO implement removing the "sample text" from the textboxes
         }
 
         private void colPlayer1_MouseDown(object sender, MouseButtonEventArgs e)
@@ -100,7 +99,7 @@ namespace hexaGonalClient.game
         private void inpPlayer2_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (inpPlayer2.Text.Length > 0)
-                p1.Name = inpPlayer2.Text;
+                p2.Name = inpPlayer2.Text;
         }
 
         private void btnStartGame_Click(object sender, RoutedEventArgs e)

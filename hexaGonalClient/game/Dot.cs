@@ -110,5 +110,10 @@ namespace hexaGoNal
         public Action UndoStateAction => undoState;
 
         public Player Player => player;
+
+        public bool IsWinDot()
+        {
+            return state == DotState.Win;
+        }
     }
 }
