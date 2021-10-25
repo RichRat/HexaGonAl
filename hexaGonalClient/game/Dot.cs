@@ -65,7 +65,7 @@ namespace hexaGoNal
                     shape.StrokeThickness = 2;
                     shape.Effect = new DropShadowEffect {
                         ShadowDepth = 0,
-                        Color = Util.ModColBrightness(player.Color, 0.2),
+                        Color = Util.ModColBrightness(player.Color, 0.5),
                         Opacity = 1,
                         BlurRadius = 64
                     };
@@ -80,7 +80,7 @@ namespace hexaGoNal
                     shape.Effect = new DropShadowEffect
                     {
                         ShadowDepth = 0,
-                        Color = Util.ModColBrightness(player.Color, 0.2),
+                        Color = Util.ModColBrightness(player.Color, 0.5),
                         Opacity = 1,
                         BlurRadius = 16
                     };

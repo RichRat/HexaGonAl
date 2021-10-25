@@ -22,8 +22,7 @@ namespace hexaGoNal
     /// </summary>
     public partial class MainWindow : Window
     {
-        List<Dot> dots = new();
-        HexMatchGame game;
+        private HexMatchGame game;
 
         public MainWindow()
         {

@@ -1,0 +1,18 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="hexaGonalClient.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="Player1Color" Type="System.String" Scope="User">
+      <Value Profile="(Default)">255 165 0</Value>
+    </Setting>
+    <Setting Name="Player2Color" Type="System.String" Scope="User">
+      <Value Profile="(Default)">0 255 255</Value>
+    </Setting>
+    <Setting Name="Player1Name" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Player 1</Value>
+    </Setting>
+    <Setting Name="Player2Name" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Player 2</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
