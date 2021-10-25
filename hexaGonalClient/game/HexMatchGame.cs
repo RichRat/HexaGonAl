@@ -391,32 +391,26 @@ namespace hexaGoNal.game
 
         private List<Coords> CheckWin(Coords pos, Player actPl)
         {
-            List<Coords> ret = new();
+            List<Coords> winRow = new();
             foreach (Coords direction in directionCoords)
             {
+                winRow.Clear();
                 Coords[] row = GetCheckRows(pos, direction);
                 for (int i = 0; i < row.Length; i++)
                 {
                     Coords checkPos = row[i];
-                    if (!dots.ContainsKey(checkPos))
+                    if (dots.ContainsKey(checkPos) && dots[checkPos].Player == actPl)
                     {
-                        ret.Clear();
-                        continue;
-                    }
-
-                    if (dots[checkPos].Player == actPl)
-                    {
-                        ret.Add(checkPos);
-                        if (ret.Count > 4)
-                            return ret;
+                        winRow.Add(checkPos);
+                        if (winRow.Count > 4)
+                            return winRow;
                     }
                     else
-                        ret.Clear();
+                        winRow.Clear();
                 }
             }
 
-            ret.Clear();
-            return ret;
+            return winRow;
         }
 
         private Coords[] GetCheckRows(Coords pos, Coords direction)

@@ -3,10 +3,10 @@
   <Profiles />
   <Settings>
     <Setting Name="Player1Color" Type="System.String" Scope="User">
-      <Value Profile="(Default)">255 165 0</Value>
+      <Value Profile="(Default)">200 138 14</Value>
     </Setting>
     <Setting Name="Player2Color" Type="System.String" Scope="User">
-      <Value Profile="(Default)">0 255 255</Value>
+      <Value Profile="(Default)">8 93 207</Value>
     </Setting>
     <Setting Name="Player1Name" Type="System.String" Scope="User">
       <Value Profile="(Default)">Player 1</Value>

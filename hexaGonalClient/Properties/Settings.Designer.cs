@@ -25,7 +25,7 @@ namespace hexaGonalClient.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("255 165 0")]
+        [global::System.Configuration.DefaultSettingValueAttribute("200 138 14")]
         public string Player1Color {
             get {
                 return ((string)(this["Player1Color"]));
@@ -37,7 +37,7 @@ namespace hexaGonalClient.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0 255 255")]
+        [global::System.Configuration.DefaultSettingValueAttribute("8 93 207")]
         public string Player2Color {
             get {
                 return ((string)(this["Player2Color"]));

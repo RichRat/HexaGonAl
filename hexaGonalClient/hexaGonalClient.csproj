@@ -1,13 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>WinExe</OutputType>
     <TargetFramework>net5.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
-    <ApplicationIcon />
+    <ApplicationIcon>hexalogo.ico</ApplicationIcon>
     <StartupObject>hexaGoNal.App</StartupObject>
     <DisableWinExeOutputInference>true</DisableWinExeOutputInference>
     <LangVersion>latest</LangVersion>
+    <Win32Resource />
   </PropertyGroup>
 
   <ItemGroup>
