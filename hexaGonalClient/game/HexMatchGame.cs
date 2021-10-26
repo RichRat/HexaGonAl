@@ -42,6 +42,10 @@ namespace hexaGoNal.game
         public event EventHandler<Player> PlayerChanged;
         public event EventHandler<Player> RoundWon;
 
+        private HexaBot bot = new();
+
+        public bool P2Bot { get; set; }
+
         public enum GameState
         {
             Turn = 0,
@@ -87,6 +91,25 @@ namespace hexaGoNal.game
             MouseWheel += OnMouseWheel; ; 
 
             scroller.SetOffset();
+
+            PlayerChanged += (_, p) =>
+            {
+                if (!P2Bot)
+                    return;
+
+                state = GameState.WaitingForTurn;
+                if (p == bot.Player)
+                {
+                    //TODO async calculate bot turn
+                    prevCoords = bot.CalcTurn();
+                    prevDot = new Dot(bot.Player, dotDiameter);
+                    Vector dotOffset = CoordsToScreen(prevCoords);
+                    SetLeft(prevDot.Shape, dotOffset.X - dotDiameter / 2);
+                    SetTop(prevDot.Shape, dotOffset.Y - dotDiameter / 2);
+                    offCan.Children.Add(prevDot.Shape);
+                    PlaceDot();
+                }
+            };
         }
 
         private void OnMouseWheel(object sender, MouseWheelEventArgs e)
@@ -122,6 +145,10 @@ namespace hexaGoNal.game
             dots.Clear();
             AnimatePlayerTurn(players[activePlayer]);
             prevDot = null;
+
+            //DEBUG
+            P2Bot = true;
+            bot.Player = pl[1];
         }
 
         private void NextRound()
@@ -212,7 +239,6 @@ namespace hexaGoNal.game
                     prevDot.Shape.Visibility = Visibility.Hidden;
                 else if (prevDot.Shape.Visibility == Visibility.Hidden)
                     prevDot.Shape.Visibility = Visibility.Visible;
-                
             }
         }
 
@@ -234,37 +260,65 @@ namespace hexaGoNal.game
 
             if (state == GameState.Turn && e.ChangedButton == MouseButton.Left && !dots.ContainsKey(prevCoords))
             {
-                dots.Add(prevCoords ,prevDot);
-                prevDot.State = DotState.LastPlaced;
-                AnimatePlaceDot(prevDot, prevCoords);
-                if (lastPlacedDot != null)
-                    lastPlacedDot.State = DotState.Default;
-
-                lastPlacedDot = prevDot;
-                prevDot = null;
-                
-                List<Coords> winRow = CheckWin(prevCoords, players[activePlayer]);
-                if (winRow.Count > 4)
-                {
-                    foreach (Coords c in winRow)
-                    {
-                        if (dots[c] != null)
-                            dots[c].State = DotState.Win;
-                    }
-
-                    players[activePlayer].Score++;
-                    Console.WriteLine("Winner: " + players[activePlayer].Name);
-                    state = GameState.RoundTransition;
-                    RoundWon?.Invoke(this, players[activePlayer]);
-                    AnimateWin(winRow, players[activePlayer]);
-                    return;
-                }
-
-                activePlayer = ++activePlayer % players.Count;
-                PlayerChanged?.Invoke(this, players[activePlayer]);
-                AnimatePlayerTurn(players[activePlayer]);
+                PlaceDot();
             }
         }
+
+        private void PlaceDot()
+        {
+            dots.Add(prevCoords, prevDot);
+            prevDot.State = DotState.LastPlaced;
+            AnimatePlaceDot(prevDot, prevCoords);
+            if (lastPlacedDot != null)
+                lastPlacedDot.State = DotState.Default;
+
+            lastPlacedDot = prevDot;
+            prevDot = null;
+
+            if (P2Bot)
+                bot.AddCoord(prevCoords, players[activePlayer]);
+
+            List<Coords> winRow = CheckWin(prevCoords, players[activePlayer]);
+            if (winRow.Count > 4)
+            {
+                foreach (Coords c in winRow)
+                {
+                    if (dots[c] != null)
+                        dots[c].State = DotState.Win;
+                }
+
+                players[activePlayer].Score++;
+                Console.WriteLine("Winner: " + players[activePlayer].Name);
+                state = GameState.RoundTransition;
+                RoundWon?.Invoke(this, players[activePlayer]);
+                AnimateWin(winRow, players[activePlayer]);
+                return;
+            }
+
+            activePlayer = ++activePlayer % players.Count;
+            PlayerChanged?.Invoke(this, players[activePlayer]);
+            AnimatePlayerTurn(players[activePlayer]);
+
+            //FIXME DEBUG remove code after test
+            foreach (Dot d in debugRemove)
+                offCan.Children.Remove(d.Shape as UIElement);
+
+            debugRemove.Clear();
+            Player tmp = new(Colors.Gray, "debug");
+            foreach (Coords c in bot.getCloud())
+            {
+                Dot d = new(tmp, dotDiameter);
+                d.Shape.Opacity = 0.3;
+                Vector v = CoordsToScreen(c);
+                Canvas.SetLeft(d.Shape, v.X - dotDiameter / 2);
+                Canvas.SetTop(d.Shape, v.Y - dotDiameter / 2);
+                offCan.Children.Add(d.Shape);
+                debugRemove.Add(d);
+            }
+        }
+
+        //FIXME DEBUG remove list
+        private List<Dot> debugRemove = new();
 
         private void AnimatePlaceDot(Dot dot, Coords c)
         {
