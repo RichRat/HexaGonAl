@@ -64,7 +64,10 @@ namespace hexaGonalClient.game
             if (lastEnemyPoint == null)
                 return new Coords(0, 0);
 
+            //TODO play single forced movce
 
+
+            //TODO play multiple forced moves
             //TODO play all moves which score highly and some that don't
             //TODO setup virutal pointcloud and points in a tree structure of moves
             //TODO return highest scoring tree branch
@@ -111,6 +114,46 @@ namespace hexaGonalClient.game
 
             //## random dot (if everything else fails create random dot withing pointspace)
             return pointCloud.ElementAt(rand.Next(0, pointCloud.Count)).Key;
+        }
+
+
+        //TODO write general method for other uses
+        private List<Coords> CheckWinMove(Player p, Coords point)
+        {
+            List<Coords> ret = new();
+            foreach (Coords dir in directionAxis)
+            {
+                int streak = 0;
+                int streakStart = -1;
+                int streakEnd = -1;
+                Coords[] row = GetCheckRows(point, dir, 4);
+                for (int i = 0; i < row.Length; i++)
+                {
+                    Coords c = row[i];
+                    bool s = points.ContainsKey(c) && points[c] == p;
+                    if (s && streakStart == -1)
+                        streak = i;
+
+                    if (s)
+                        streak++;
+
+
+                    //TODO for this case (range5) sum amount of pieces in a 5 distance where whin condition is 4pieces and 1 empty. if a enemy piece is in the range it is dead 
+                }
+            }
+
+            return ret;
+        }
+
+        private Coords[] GetCheckRows(Coords pos, Coords direction, int radius)
+        {
+            Coords[] ret = new Coords[9];
+            for (int i = -radius; i <= radius; i++)
+            {
+                ret[i + 4] = pos + (direction * i);
+            }
+
+            return ret;
         }
 
         private void GeneratePointCloud(Coords center, int depth)

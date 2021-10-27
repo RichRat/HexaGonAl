@@ -146,9 +146,11 @@ namespace hexaGoNal.game
             AnimatePlayerTurn(players[activePlayer]);
             prevDot = null;
 
-            //DEBUG
-            P2Bot = true;
-            bot.Player = pl[1];
+            if (players[1].Name.ToLower().StartsWith("bot"))
+            {
+                P2Bot = true;
+                bot.Player = pl[1];
+            }
         }
 
         private void NextRound()
