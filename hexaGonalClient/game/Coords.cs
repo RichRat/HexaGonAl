@@ -60,7 +60,11 @@ namespace hexaGonalClient.game
 
         public override int GetHashCode()
         {
-            return ToString().GetHashCode();
+            int hash = 4133;
+            hash *= 2029 * X.GetHashCode();
+            hash *= 5669 * Y.GetHashCode();
+
+            return 1;
         }
 
         public static Coords operator +(Coords a, Coords b)

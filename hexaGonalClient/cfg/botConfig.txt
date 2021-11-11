@@ -1,0 +1,67 @@
+## ---- bot config sheet ---- 
+##
+## Defines the lookup table for the computer player
+## Each possible move is cehcked against the patterns below and scored with the value of $v additively
+## that should in theory make moves which acomlish more than one thing more likely to be played
+##
+## note: all definitions are additionally loaded as mirrors so there is no need to define a reverse manually
+##
+## 1 = friendly 
+## 2 = enemy
+## $v = value of move
+## !break : if match till now abort used for forced moves
+##
+## all combinations that don' exceed a length of 4 from v are valid
+
+#win
+$v = 100000
+v 1 1 1 1
+1 v 1 1 1
+1 1 v 1 1
+!break
+
+#check
+$v = 90000
+v 2 2 2 2
+2 v 2 2 2
+2 2 v 2 2
+!break
+
+# defend against enemy checkmates
+$v = 10000
+v 2 2 2 0
+0 2 2 v 2 0
+
+#attack - forces enem to move
+$v = 100
+0 v 1 1 1
+v 0 1 1 1 
+0 v 1 1 0
+0 1 v 1 0
+0 1 1 0 v 0 
+
+# attack - create opportunities
+$v = 10
+0 v 1 0
+0 v 0 1 0
+$v = 6
+1 0 v 0 1
+v 0 0 1 
+
+# defend - block opportunities
+$v = 8
+2 v 2
+v 2 2
+$v = 5
+2 v 0 2
+# this hits before at v22 just reinforce the importance of the same case being open
+$v = 2
+v 2 2 0
+
+
+# small points for uncertain situations
+$v = 1
+v 2
+v 1
+v 0 2
+v 0 1

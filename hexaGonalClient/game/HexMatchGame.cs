@@ -21,8 +21,9 @@ namespace hexaGoNal.game
         private readonly Canvas offCan = new();
         
         private readonly List<Player> players = new();
-        private int activePlayer;
-        private GameState state = GameState.Turn;
+        private int playerIndex;
+
+        private GameState state = GameState.Initialized;
         private readonly ScreenScroller scroller;
         private bool isDrag = false;
 
@@ -52,7 +53,8 @@ namespace hexaGoNal.game
             PlayerTransition = 1,
             RoundTransition = 2,
             WaitingForTurn = 4,
-            GameFinished = 32
+            GameFinished = 32,
+            Initialized = 64
         }
 
         // coords for all possible directions
@@ -72,6 +74,11 @@ namespace hexaGoNal.game
             new Coords(0, 1),
             new Coords(-1, 1)
         };
+
+        public Player ActivePlayer 
+        { 
+            get => players[playerIndex]; 
+        }
 
         public HexMatchGame()
         {
@@ -97,9 +104,9 @@ namespace hexaGoNal.game
                 if (!P2Bot)
                     return;
 
-                state = GameState.WaitingForTurn;
                 if (p == bot.Player)
                 {
+                    state = GameState.WaitingForTurn;
                     //TODO async calculate bot turn
                     prevCoords = bot.CalcTurn();
                     prevDot = new Dot(bot.Player, dotDiameter);
@@ -128,7 +135,10 @@ namespace hexaGoNal.game
         /// <param name="players">list of players</param>
         public void StartGame(List<Player> pl)
         {
-            Console.WriteLine("Start Game");
+            if (state != GameState.Initialized)
+                return;
+
+            //Console.WriteLine("Start Game");
             
             //clear up previous game
             scroller.Offset = new Vector();
@@ -137,13 +147,13 @@ namespace hexaGoNal.game
             players.Clear();
             players.AddRange(pl);
 
-            activePlayer = 0;
-            PlayerChanged?.Invoke(this, players[activePlayer]);
+            playerIndex = 0;
+            PlayerChanged?.Invoke(this, ActivePlayer);
 
             offCan.Children.Clear();
             state = GameState.Turn;
             dots.Clear();
-            AnimatePlayerTurn(players[activePlayer]);
+            AnimatePlayerTurn(ActivePlayer);
             prevDot = null;
 
             if (players[1].Name.ToLower().StartsWith("bot"))
@@ -165,6 +175,7 @@ namespace hexaGoNal.game
                     offCan.Children.Clear();
                     scroller.Offset = new Vector();
                     scroller.SetOffset();
+                    bot.Clear();
                 };
         }
 
@@ -223,7 +234,7 @@ namespace hexaGoNal.game
             {
                 if (prevDot == null)
                 {
-                    prevDot = new Dot(players[activePlayer], dotDiameter);
+                    prevDot = new Dot(ActivePlayer, dotDiameter);
                     prevDot.State = DotState.Preview;
                     offCan.Children.Add(prevDot.Shape);
                 }
@@ -278,9 +289,9 @@ namespace hexaGoNal.game
             prevDot = null;
 
             if (P2Bot)
-                bot.AddCoord(prevCoords, players[activePlayer]);
+                bot.AddCoord(prevCoords, ActivePlayer);
 
-            List<Coords> winRow = CheckWin(prevCoords, players[activePlayer]);
+            List<Coords> winRow = CheckWin(prevCoords, ActivePlayer);
             if (winRow.Count > 4)
             {
                 foreach (Coords c in winRow)
@@ -289,19 +300,23 @@ namespace hexaGoNal.game
                         dots[c].State = DotState.Win;
                 }
 
-                players[activePlayer].Score++;
-                Console.WriteLine("Winner: " + players[activePlayer].Name);
+                ActivePlayer.Score++;
+                Console.WriteLine("Winner: " + ActivePlayer.Name);
                 state = GameState.RoundTransition;
-                RoundWon?.Invoke(this, players[activePlayer]);
-                AnimateWin(winRow, players[activePlayer]);
+                RoundWon?.Invoke(this, ActivePlayer);
+                AnimateWin(winRow, ActivePlayer);
                 return;
             }
 
-            activePlayer = ++activePlayer % players.Count;
-            PlayerChanged?.Invoke(this, players[activePlayer]);
-            AnimatePlayerTurn(players[activePlayer]);
+            if (P2Bot && state == GameState.WaitingForTurn)
+                state = GameState.Turn;
+
+            playerIndex = (playerIndex + 1) % players.Count;
+            PlayerChanged?.Invoke(this, ActivePlayer);
+            AnimatePlayerTurn(ActivePlayer);
 
             //FIXME DEBUG remove code after test
+            //TODO color debug circles acccording to value estimateion of bot ( 1 - 10 - 100 - 1000 ~ grey green yellow red)
             foreach (Dot d in debugRemove)
                 offCan.Children.Remove(d.Shape as UIElement);
 

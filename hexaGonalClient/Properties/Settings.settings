@@ -14,5 +14,8 @@
     <Setting Name="Player2Name" Type="System.String" Scope="User">
       <Value Profile="(Default)">Player 2</Value>
     </Setting>
+    <Setting Name="botConfLoc" Type="System.String" Scope="User">
+      <Value Profile="(Default)">cfg/botConfig.txt</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

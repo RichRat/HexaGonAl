@@ -70,5 +70,17 @@ namespace hexaGonalClient.Properties {
                 this["Player2Name"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("cfg/botConfig.txt")]
+        public string botConfLoc {
+            get {
+                return ((string)(this["botConfLoc"]));
+            }
+            set {
+                this["botConfLoc"] = value;
+            }
+        }
     }
 }
