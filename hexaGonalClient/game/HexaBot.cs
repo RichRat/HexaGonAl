@@ -34,7 +34,7 @@ namespace hexaGonalClient.game
             new Coords(0, -1),
             new Coords(1, -1),
             new Coords(1, 0),
-            new Coords(0, 1),
+            new Coords(0, 1)
         };
 
         private static readonly Coords[] directionAxis =
@@ -163,9 +163,9 @@ namespace hexaGonalClient.game
             }
         }
 
-        public List<Coords> getCloud()
+        public Dictionary<Coords, int> getCloud()
         {
-            return pointCloud.Select(kvp => kvp.Key).ToList();
+            return pointCloud;
         }
 
         private int ScoreRow(int[] row)
@@ -187,7 +187,9 @@ namespace hexaGonalClient.game
             Regex reg = new(@"^[!$012v]");
             Regex num = new(@"\d+");
 
+            //TODO rename here and in config v = value s = score (for pcloud)
             int score = 0;
+            int stratScore = 0;
             foreach (string line in Properties.Resources.botConfig.Split('\n'))
             {
                 if (string.IsNullOrEmpty(line) || line.Length < 2 || !reg.IsMatch(line))
@@ -199,7 +201,13 @@ namespace hexaGonalClient.game
                     case '$':
                         Match m = num.Match(line);
                         if (m.Success)
-                            score = int.Parse(m.Groups[0].Value);
+                        {
+                            int val = int.Parse(m.Groups[0].Value);
+                            if (line[2] == 'v')
+                                score = val;
+                            else if (line[2] == 's')
+                                stratScore = val;
+                        }
 
                         break;
                     case '!':

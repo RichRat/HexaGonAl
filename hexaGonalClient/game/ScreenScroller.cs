@@ -61,7 +61,7 @@ namespace hexaGonalClient.game
         public void StopDrag(bool postAnimate = true)
         {
             prevMousePos = null;
-            if (!postAnimate)
+            if (!postAnimate || dragVelTimes.Count < 2)
                 return;
 
             Stopwatch sw = dragVelTimes[0];

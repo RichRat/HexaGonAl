@@ -20,12 +20,17 @@ v 1 1 1 1
 1 1 v 1 1
 !break
 
-#check
+#defend check
 $v = 90000
 v 2 2 2 2
 2 v 2 2 2
 2 2 v 2 2
 !break
+
+#win next turn
+$v = 80000
+0 v 1 1 1 0
+0 1 v 1 1 0
 
 # defend against enemy checkmates
 $v = 10000

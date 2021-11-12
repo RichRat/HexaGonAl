@@ -95,7 +95,7 @@ namespace hexaGoNal.game
             MouseUp += OnMouseUp;
             MouseLeave += OnMouseLeave;
             MouseMove += OnMouseMove;
-            MouseWheel += OnMouseWheel; ; 
+            MouseWheel += OnMouseWheel;
 
             scroller.SetOffset();
 
@@ -104,12 +104,17 @@ namespace hexaGoNal.game
                 if (!P2Bot)
                     return;
 
+                //TODO dont immediately execute. Either dispatch or thread because otherwise player changed is called within the eventhandler.
+                //TODO move outside eventhandler logic (shuld just be manually called at the only playerIndex increment
                 if (p == bot.Player)
                 {
                     state = GameState.WaitingForTurn;
                     //TODO async calculate bot turn
                     prevCoords = bot.CalcTurn();
                     prevDot = new Dot(bot.Player, dotDiameter);
+#if DEBUG
+                    prevDot.Shape.ToolTip = "Score: " + bot.getCloud()[prevCoords];
+#endif
                     Vector dotOffset = CoordsToScreen(prevCoords);
                     SetLeft(prevDot.Shape, dotOffset.X - dotDiameter / 2);
                     SetTop(prevDot.Shape, dotOffset.Y - dotDiameter / 2);
@@ -121,6 +126,12 @@ namespace hexaGoNal.game
 
         private void OnMouseWheel(object sender, MouseWheelEventArgs e)
         {
+            if (state == GameState.Turn)
+            {
+                state = GameState.WaitingForTurn;
+            }
+            else
+                state = GameState.Turn;
             //TODO https://stackoverflow.com/questions/33185482/how-to-programmatically-change-the-scale-of-a-canvas
         }
 
@@ -315,21 +326,35 @@ namespace hexaGoNal.game
             PlayerChanged?.Invoke(this, ActivePlayer);
             AnimatePlayerTurn(ActivePlayer);
 
-            //FIXME DEBUG remove code after test
-            //TODO color debug circles acccording to value estimateion of bot ( 1 - 10 - 100 - 1000 ~ grey green yellow red)
+            //FIXME DEBUG remove code after test or at least make toggleable
+#if DEBUG
+            DebugBotLogicDisplay();
+#endif
+        }
+
+        private void DebugBotLogicDisplay()
+        {
             foreach (Dot d in debugRemove)
                 offCan.Children.Remove(d.Shape as UIElement);
 
             debugRemove.Clear();
             Player tmp = new(Colors.Gray, "debug");
-            foreach (Coords c in bot.getCloud())
+            int max = 1;
+            foreach (var c in bot.getCloud())
+                if (c.Value > max)
+                    max = c.Value;
+
+            foreach (KeyValuePair<Coords, int> c in bot.getCloud())
             {
                 Dot d = new(tmp, dotDiameter);
                 d.Shape.Opacity = 0.3;
-                Vector v = CoordsToScreen(c);
+                Vector v = CoordsToScreen(c.Key);
                 Canvas.SetLeft(d.Shape, v.X - dotDiameter / 2);
                 Canvas.SetTop(d.Shape, v.Y - dotDiameter / 2);
                 offCan.Children.Add(d.Shape);
+                d.Shape.ToolTip = "Score: " + c.Value;
+                d.Shape.Fill = new SolidColorBrush(Util.ModColBrightness(
+                    Color.FromRgb(0x11, 0x11, 0x11), (double)c.Value / (double)max));
                 debugRemove.Add(d);
             }
         }
