@@ -23,7 +23,7 @@ namespace hexaGonalClient.game.util
     /// </summary>
     public partial class ColorSwatches : UserControl
     {
-        Color[] cols =
+        private static readonly Color[] cols =
         {
             Colors.White,
             Colors.LightGray,
@@ -35,7 +35,7 @@ namespace hexaGonalClient.game.util
             Colors.SeaGreen,
             Colors.Aqua,
             Colors.LightBlue,
-            Colors.Blue,
+            Colors.MediumBlue,
             Colors.Fuchsia,
             Colors.Magenta,
             Colors.BlueViolet

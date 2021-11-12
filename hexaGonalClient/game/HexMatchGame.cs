@@ -98,40 +98,16 @@ namespace hexaGoNal.game
             MouseWheel += OnMouseWheel;
 
             scroller.SetOffset();
-
-            PlayerChanged += (_, p) =>
-            {
-                if (!P2Bot)
-                    return;
-
-                //TODO dont immediately execute. Either dispatch or thread because otherwise player changed is called within the eventhandler.
-                //TODO move outside eventhandler logic (shuld just be manually called at the only playerIndex increment
-                if (p == bot.Player)
-                {
-                    state = GameState.WaitingForTurn;
-                    //TODO async calculate bot turn
-                    prevCoords = bot.CalcTurn();
-                    prevDot = new Dot(bot.Player, dotDiameter);
-#if DEBUG
-                    prevDot.Shape.ToolTip = "Score: " + bot.getCloud()[prevCoords];
-#endif
-                    Vector dotOffset = CoordsToScreen(prevCoords);
-                    SetLeft(prevDot.Shape, dotOffset.X - dotDiameter / 2);
-                    SetTop(prevDot.Shape, dotOffset.Y - dotDiameter / 2);
-                    offCan.Children.Add(prevDot.Shape);
-                    PlaceDot();
-                }
-            };
         }
 
         private void OnMouseWheel(object sender, MouseWheelEventArgs e)
         {
+#if DEBUG
             if (state == GameState.Turn)
-            {
                 state = GameState.WaitingForTurn;
-            }
             else
                 state = GameState.Turn;
+#endif
             //TODO https://stackoverflow.com/questions/33185482/how-to-programmatically-change-the-scale-of-a-canvas
         }
 
@@ -187,6 +163,7 @@ namespace hexaGoNal.game
                     scroller.Offset = new Vector();
                     scroller.SetOffset();
                     bot.Clear();
+                    BotMove();
                 };
         }
 
@@ -325,6 +302,8 @@ namespace hexaGoNal.game
             playerIndex = (playerIndex + 1) % players.Count;
             PlayerChanged?.Invoke(this, ActivePlayer);
             AnimatePlayerTurn(ActivePlayer);
+            if (P2Bot)
+                BotMove();
 
             //FIXME DEBUG remove code after test or at least make toggleable
 #if DEBUG
@@ -518,6 +497,29 @@ namespace hexaGoNal.game
             }
 
             return ret;
+        }
+
+        private void BotMove()
+        {
+            if (!P2Bot)
+                return;
+
+            //TODO dont immediately execute. Either dispatch or thread because otherwise player changed is called within the eventhandler.
+            if (ActivePlayer == bot.Player)
+            {
+                state = GameState.WaitingForTurn;
+                //TODO async calculate bot turn
+                prevCoords = bot.CalcTurn();
+                prevDot = new Dot(bot.Player, dotDiameter);
+#if DEBUG
+                prevDot.Shape.ToolTip = "Score: " + bot.getCloud()[prevCoords];
+#endif
+                Vector dotOffset = CoordsToScreen(prevCoords);
+                SetLeft(prevDot.Shape, dotOffset.X - dotDiameter / 2);
+                SetTop(prevDot.Shape, dotOffset.Y - dotDiameter / 2);
+                offCan.Children.Add(prevDot.Shape);
+                PlaceDot();
+            }
         }
  
     }

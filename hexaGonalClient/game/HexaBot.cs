@@ -81,8 +81,6 @@ namespace hexaGonalClient.game
             if (lastEnemyPoint == null)
                 return new Coords(0, 0);
 
-            //TODO play single forced movce
-
             CalcBestMoves(Player);
 
             List<Coords> bestMoves = new();
@@ -184,12 +182,13 @@ namespace hexaGonalClient.game
 
         public void LoadLut()
         {
-            Regex reg = new(@"^[!$012v]");
-            Regex num = new(@"\d+");
+            Regex reg = new(@"^[!$012x]");
+            Regex num = new(@"[+-]{0,1}\d+");
+            Regex varScore = new(@"\$s = ");
+            Regex varValue = new(@"\$v = ");
 
-            //TODO rename here and in config v = value s = score (for pcloud)
             int score = 0;
-            int stratScore = 0;
+            int stratValue = 0; //TODO introduce startegic value to botlutentry
             foreach (string line in Properties.Resources.botConfig.Split('\n'))
             {
                 if (string.IsNullOrEmpty(line) || line.Length < 2 || !reg.IsMatch(line))
@@ -203,28 +202,33 @@ namespace hexaGonalClient.game
                         if (m.Success)
                         {
                             int val = int.Parse(m.Groups[0].Value);
-                            if (line[2] == 'v')
+                            if (varScore.IsMatch(line))
                                 score = val;
-                            else if (line[2] == 's')
-                                stratScore = val;
+                            else if (varValue.IsMatch(line))
+                                stratValue = val;
                         }
 
                         break;
                     case '!':
                         if (line.Contains("!break"))
+                        {
                             scoreLookup.Add(new BotLutEntry());
-
+                            Console.WriteLine("!break");
+                        }
                         break;
                     case '0':
                     case '1':
                     case '2':
-                    case 'v':
+                    case 'x':
                         BotLutEntry ble = new(line, score);
+                        Console.WriteLine(ble);
                         scoreLookup.Add(ble);
                         BotLutEntry bleMir = ble.Mirror();
                         if (!ble.Equals(bleMir))
+                        {
+                            Console.WriteLine(bleMir);
                             scoreLookup.Add(bleMir);
-
+                        }
                         break;
                     default:
                         break;

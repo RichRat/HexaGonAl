@@ -10,10 +10,10 @@ namespace hexaGonalClient.game.util
     class BotLutEntry
     {
         public static readonly int POS = 0xFF;
-        private static readonly Regex regSelVals = new(@"[v0-2]");
+        private static readonly Regex regSelVals = new(@"[x0-2]");
         private static readonly Regex isNum = new(@"\d+");
 
-        private int[] vals;
+        private int[] pattern;
         private int score;
         private int offset;
 
@@ -24,7 +24,7 @@ namespace hexaGonalClient.game.util
             IsBreak = isBreak;
         }
 
-        public BotLutEntry(String input, int score)
+        public BotLutEntry(string input, int score)
         {
             this.score = score;
             IsBreak = false;
@@ -32,16 +32,16 @@ namespace hexaGonalClient.game.util
             if (input == null)
                 return;
 
-            var ml = regSelVals.Matches(input);
-            vals = new int[ml.Count];
+            MatchCollection matches = regSelVals.Matches(input);
+            pattern = new int[matches.Count];
             int i = 0;
-            foreach (Match m in ml)
+            foreach (Match mat in matches)
             {
-                if (isNum.IsMatch(m.Value))
-                    vals[i++] = int.Parse(m.Value);
+                if (isNum.IsMatch(mat.Value))
+                    pattern[i++] = int.Parse(mat.Value);
                 else
                 {
-                    vals[i] = POS;
+                    pattern[i] = POS;
                     offset = i;
                     i++;
                 }
@@ -56,10 +56,10 @@ namespace hexaGonalClient.game.util
                 return "!break";
 
             String ret = "";
-            foreach (int b in vals)
+            foreach (int b in pattern)
                 ret += b + " ";
 
-            return ret;
+            return ret + " (" + score + ")";
                 
         }
 
@@ -68,9 +68,9 @@ namespace hexaGonalClient.game.util
             if (IsBreak)
                 return 0;
 
-            for (int i = 0; i < vals.Length; i++)
+            for (int i = 0; i < pattern.Length; i++)
             {
-                if (check[i + 4 - offset] != vals[i])
+                if (check[i + 4 - offset] != pattern[i])
                     return 0;
             }
 
@@ -84,11 +84,11 @@ namespace hexaGonalClient.game.util
 
             BotLutEntry bl = new(false);
             bl.score = score;
-            bl.vals = new int[vals.Length];
-            for (int i = 0; i < vals.Length; i++)
-                bl.vals[i] = vals[vals.Length - 1 - i];
+            bl.pattern = new int[pattern.Length];
+            for (int i = 0; i < pattern.Length; i++)
+                bl.pattern[i] = pattern[pattern.Length - 1 - i];
 
-            bl.offset = vals.Length - 1 - offset;
+            bl.offset = pattern.Length - 1 - offset;
 
             return bl;
         }
@@ -102,7 +102,7 @@ namespace hexaGonalClient.game.util
             if (bl.IsBreak)
                 return IsBreak == bl.IsBreak;
 
-            return score == bl.score && vals.SequenceEqual(bl.vals);
+            return score == bl.score && pattern.SequenceEqual(bl.pattern);
         }
 
         public override int GetHashCode()
