@@ -64,15 +64,16 @@ namespace hexaGonalClient.Properties {
         ///   Looks up a localized string similar to ## ---- bot config sheet ---- 
         ///##
         ///## Defines the lookup table for the computer player
-        ///## Each possible move is cehcked against the patterns below and scored with the value of $v additively
+        ///## Each possible move is cehcked against the patterns below and scored with the value of $s additively
         ///## that should in theory make moves which acomlish more than one thing more likely to be played
         ///##
         ///## note: all definitions are additionally loaded as mirrors so there is no need to define a reverse manually
         ///##
         ///## 1 = friendly 
         ///## 2 = enemy
-        ///## $v = value of move
-        ///## !break : if match till now abort used for forc [rest of string was truncated]&quot;;.
+        ///## $s = value of move ( &gt;= 0)
+        ///## $v = strategic value of the move 
+        ///##  [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string botConfig {
             get {

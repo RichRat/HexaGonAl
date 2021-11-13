@@ -167,6 +167,11 @@ namespace hexaGoNal.game
                 };
         }
 
+        /// <summary>
+        /// converts a coordinate to the screen position relative to offCanv
+        /// </summary>
+        /// <param name="c">Coordinate to convert</param>
+        /// <returns>Vector of the screen position relative to offCanv</returns>
         private Vector CoordsToScreen(Coords c)
         {
             return xAxsis * c.X * dotSpacing + yAxsis * c.Y * dotSpacing;
@@ -188,6 +193,8 @@ namespace hexaGoNal.game
             int x = (int)Math.Round(xPos.X / xAxsis.X / dotSpacing);
 
             Coords estim = new(x, y);
+            //this results in a jumpy experience when moving the mouse since y is calcualted first
+            //get all neigbours of the estimation and get the closest hex grid position
             List<Coords> candidates = GetNeighbours(estim, true);
 
             Coords min = estim;
@@ -242,8 +249,6 @@ namespace hexaGoNal.game
                     prevDot.Shape.Visibility = Visibility.Visible;
             }
         }
-
-        
 
         private void OnMouseDown(object sender, MouseButtonEventArgs e)
         {
