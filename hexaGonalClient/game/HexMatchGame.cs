@@ -517,7 +517,8 @@ namespace hexaGoNal.game
                 prevCoords = bot.CalcTurn();
                 prevDot = new Dot(bot.Player, dotDiameter);
 #if DEBUG
-                prevDot.Shape.ToolTip = "Score: " + bot.getCloud()[prevCoords];
+                if (bot.getCloud().ContainsKey(prevCoords))
+                    prevDot.Shape.ToolTip = "Score: " + bot.getCloud()[prevCoords];
 #endif
                 Vector dotOffset = CoordsToScreen(prevCoords);
                 SetLeft(prevDot.Shape, dotOffset.X - dotDiameter / 2);

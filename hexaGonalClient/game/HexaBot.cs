@@ -86,6 +86,7 @@ namespace hexaGonalClient.game
             List<Coords> bestMoves = new();
             int score = 0;
             foreach (var v in pointCloud)
+            {
                 if (v.Value > score)
                 {
                     bestMoves.Clear();
@@ -94,6 +95,7 @@ namespace hexaGonalClient.game
                 }
                 else if (v.Value == score)
                     bestMoves.Add(v.Key);
+            }
 
             Console.WriteLine("HexaBot Eval in " + sw.ElapsedMilliseconds + "ms");
 
@@ -220,7 +222,7 @@ namespace hexaGonalClient.game
                     case '1':
                     case '2':
                     case 'x':
-                        BotLutEntry ble = new(line, score);
+                        BotLutEntry ble = new(line, score, stratValue);
                         Console.WriteLine(ble);
                         scoreLookup.Add(ble);
                         BotLutEntry bleMir = ble.Mirror();

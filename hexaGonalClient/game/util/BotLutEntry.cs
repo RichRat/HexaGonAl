@@ -15,6 +15,7 @@ namespace hexaGonalClient.game.util
 
         private int[] pattern;
         private int score;
+        private int stratValue;
         private int offset;
 
         public bool IsBreak { get; }
@@ -24,9 +25,10 @@ namespace hexaGonalClient.game.util
             IsBreak = isBreak;
         }
 
-        public BotLutEntry(string input, int score)
+        public BotLutEntry(string input, int score, int stratValue)
         {
             this.score = score;
+            this.stratValue = stratValue;
             IsBreak = false;
             
             if (input == null)
@@ -59,22 +61,27 @@ namespace hexaGonalClient.game.util
             foreach (int b in pattern)
                 ret += b + " ";
 
-            return ret + " (" + score + ")";
+            return ret + " (" + score + ", " + stratValue + ")";
                 
         }
 
         public int Check(int[] check)
         {
+            return IsMatch(check) ? score : 0;
+        }
+
+        public bool IsMatch(int[] check)
+        {
             if (IsBreak)
-                return 0;
+                return false;
 
             for (int i = 0; i < pattern.Length; i++)
             {
                 if (check[i + 4 - offset] != pattern[i])
-                    return 0;
+                    return false;
             }
 
-            return score;
+            return true;
         }
 
         public BotLutEntry Mirror()
@@ -84,6 +91,7 @@ namespace hexaGonalClient.game.util
 
             BotLutEntry bl = new(false);
             bl.score = score;
+            bl.stratValue = stratValue;
             bl.pattern = new int[pattern.Length];
             for (int i = 0; i < pattern.Length; i++)
                 bl.pattern[i] = pattern[pattern.Length - 1 - i];
@@ -102,7 +110,7 @@ namespace hexaGonalClient.game.util
             if (bl.IsBreak)
                 return IsBreak == bl.IsBreak;
 
-            return score == bl.score && pattern.SequenceEqual(bl.pattern);
+            return score == bl.score && stratValue == bl.stratValue && pattern.SequenceEqual(bl.pattern);
         }
 
         public override int GetHashCode()
