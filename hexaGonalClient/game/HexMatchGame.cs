@@ -140,7 +140,7 @@ namespace hexaGoNal.game
             offCan.Children.Clear();
             state = GameState.Turn;
             dots.Clear();
-            AnimatePlayerTurn(ActivePlayer);
+            AnimatePlayerTurn(ActivePlayer.Name + "'s Turn", ActivePlayer);
             prevDot = null;
 
             if (players[1].Name.ToLower().StartsWith("bot"))
@@ -306,7 +306,7 @@ namespace hexaGoNal.game
 
             playerIndex = (playerIndex + 1) % players.Count;
             PlayerChanged?.Invoke(this, ActivePlayer);
-            AnimatePlayerTurn(ActivePlayer);
+            AnimatePlayerTurn(ActivePlayer.Name + "'s Turn", ActivePlayer);
             if (P2Bot)
                 BotMove();
 
@@ -404,13 +404,17 @@ namespace hexaGoNal.game
             });
         }
 
-        private void AnimatePlayerTurn(Player p)
+
+
+        private void AnimatePlayerTurn(string message, Player p = null)
         {
-            TextBlock text = new TextBlock
+            //TODO add height and top offset to prevous calls so simultaneous messages don't overlap
+
+            TextBlock text = new()
             {
-                Text = p.Name + "'s Turn",
+                Text = message,
                 FontSize = 25,
-                Foreground = p.Brush,
+                Foreground = p != null ? p.Brush : new SolidColorBrush(Color.FromRgb(0x11, 0x11, 0x11)),
                 HorizontalAlignment = HorizontalAlignment.Left,
                 FontWeight = FontWeights.ExtraBold,
                 Effect = new DropShadowEffect
@@ -426,7 +430,8 @@ namespace hexaGoNal.game
             SetTop(text, -300);
             animator.RegisterAnimation(AnimationStyle.EaseOut, 500, (_, x) =>
             {
-                SetTop(text, (-text.ActualHeight - 16) * (1 - x));
+                double top = (-text.ActualHeight - 16) * (1 - x);
+                SetTop(text, top);
             });
 
             animator.RegisterAnimation(AnimationStyle.EaseOut, 2500, (_, x) =>
@@ -516,13 +521,15 @@ namespace hexaGoNal.game
                 //TODO async calculate bot turn
                 prevCoords = bot.CalcTurn();
                 prevDot = new Dot(bot.Player, dotDiameter);
-#if DEBUG
-                prevDot.Shape.ToolTip = "Score: " + bot.getCloud()[prevCoords];
-#endif
+
                 Vector dotOffset = CoordsToScreen(prevCoords);
                 SetLeft(prevDot.Shape, dotOffset.X - dotDiameter / 2);
                 SetTop(prevDot.Shape, dotOffset.Y - dotDiameter / 2);
                 offCan.Children.Add(prevDot.Shape);
+#if DEBUG
+                if (bot.getCloud().Count > 0)
+                    prevDot.Shape.ToolTip = "Score: " + bot.getCloud()[prevCoords];
+#endif
                 PlaceDot();
             }
         }

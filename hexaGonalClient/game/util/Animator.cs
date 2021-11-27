@@ -70,8 +70,8 @@ namespace hexaGonalClient.game
                 KeyValuePair<object, Animation>[] remArr = animators.Where(kvp => kvp.Value.IsDone()).ToArray();
                 foreach (KeyValuePair<object, Animation> item in remArr)
                 {
-                    item.Value.OnFinished(elem.Dispatcher);
                     RemoveAnimatee(item.Key);
+                    item.Value.OnFinished(elem.Dispatcher);
                 }
             }
         }
