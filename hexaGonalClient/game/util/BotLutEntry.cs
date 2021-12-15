@@ -14,8 +14,7 @@ namespace hexaGonalClient.game.util
         private static readonly Regex isNum = new(@"\d+");
 
         private int[] pattern;
-        private int score;
-        private int stratValue;
+        private BotMoveVal val;
         private int offset;
 
         public bool IsBreak { get; }
@@ -27,8 +26,7 @@ namespace hexaGonalClient.game.util
 
         public BotLutEntry(string input, int score, int stratValue)
         {
-            this.score = score;
-            this.stratValue = stratValue;
+            val = new(score, stratValue);
             IsBreak = false;
             
             if (input == null)
@@ -61,13 +59,13 @@ namespace hexaGonalClient.game.util
             foreach (int b in pattern)
                 ret += b + " ";
 
-            return ret + " (" + score + ", " + stratValue + ")";
+            return ret + " " + val;
                 
         }
 
-        public int Check(int[] check)
+        public BotMoveVal Check(int[] check)
         {
-            return IsMatch(check) ? score : 0;
+            return IsMatch(check) ? val : new();
         }
 
         public bool IsMatch(int[] check)
@@ -90,8 +88,7 @@ namespace hexaGonalClient.game.util
                 return this;
 
             BotLutEntry bl = new(false);
-            bl.score = score;
-            bl.stratValue = stratValue;
+            bl.val = val.Clone();
             bl.pattern = new int[pattern.Length];
             for (int i = 0; i < pattern.Length; i++)
                 bl.pattern[i] = pattern[pattern.Length - 1 - i];
@@ -110,7 +107,7 @@ namespace hexaGonalClient.game.util
             if (bl.IsBreak)
                 return IsBreak == bl.IsBreak;
 
-            return score == bl.score && stratValue == bl.stratValue && pattern.SequenceEqual(bl.pattern);
+            return val.Equals(bl.val) && pattern.SequenceEqual(bl.pattern);
         }
 
         public override int GetHashCode()

@@ -11,6 +11,7 @@ using static hexaGoNal.Dot;
 using static hexaGonalClient.game.Animator;
 using hexaGonalClient;
 using System.Windows.Media.Effects;
+using hexaGonalClient.game.util;
 
 namespace hexaGoNal.game
 {
@@ -54,7 +55,8 @@ namespace hexaGoNal.game
             RoundTransition = 2,
             WaitingForTurn = 4,
             GameFinished = 32,
-            Initialized = 64
+            Initialized = 64,
+            RoundTransitionAnimation = 128
         }
 
         // coords for all possible directions
@@ -147,13 +149,17 @@ namespace hexaGoNal.game
             {
                 P2Bot = true;
                 bot.Player = pl[1];
+                bot.Opponent = pl[0];
             }
         }
 
         private void NextRound()
         {
-            state = GameState.RoundTransition;
+            state = GameState.RoundTransitionAnimation;
             double bottomDotY = dots.Keys.Select(CoordsToScreen).Select(v => v.Y).Max();
+            playerIndex = (playerIndex + 1) % players.Count;
+            PlayerChanged?.Invoke(this, ActivePlayer);
+            AnimatePlayerTurn(ActivePlayer);
             scroller.AnimateScroll(new Vector(scroller.Offset.X, -(bottomDotY + ActualHeight + dotSpacing)), 1200)
                 .AnimationFinished = () =>
                 {
@@ -325,10 +331,10 @@ namespace hexaGoNal.game
             Player tmp = new(Colors.Gray, "debug");
             int max = 1;
             foreach (var c in bot.getCloud())
-                if (c.Value > max)
-                    max = c.Value;
+                if (c.Value.Score > max)
+                    max = c.Value.Score;
 
-            foreach (KeyValuePair<Coords, int> c in bot.getCloud())
+            foreach (KeyValuePair<Coords, BotMoveVal> c in bot.getCloud())
             {
                 Dot d = new(tmp, dotDiameter);
                 d.Shape.Opacity = 0.3;
@@ -338,7 +344,7 @@ namespace hexaGoNal.game
                 offCan.Children.Add(d.Shape);
                 d.Shape.ToolTip = "Score: " + c.Value;
                 d.Shape.Fill = new SolidColorBrush(Util.ModColBrightness(
-                    Color.FromRgb(0x11, 0x11, 0x11), (double)c.Value / (double)max));
+                    Color.FromRgb(0x11, 0x11, 0x11), (double)c.Value.Score / (double)max));
                 debugRemove.Add(d);
             }
         }
@@ -385,9 +391,7 @@ namespace hexaGoNal.game
             WinRoundScreen winText = new();
             winText.Opacity = 0;
             winText.EnableScreen(winPlayer, players);
-
-            if (!offCan.Children.Contains(winText))
-                offCan.Children.Add(winText);
+            offCan.Children.Add(winText);
 
             animator.RegisterAnimation(AnimationStyle.EaseIn, 1500, (k, x) => winText.Opacity = x);
             
@@ -396,7 +400,7 @@ namespace hexaGoNal.game
             SetLeft(winText, textPos.X);
             SetTop(winText, textPos.Y);
 
-            var nonWinList = from v in dots where !v.Value.IsWinDot() select v.Value;
+            IEnumerable<Dot> nonWinList = from v in dots where !v.Value.IsWinDot() select v.Value;
             animator.RegisterAnimation(AnimationStyle.EaseInOut, 1200, (_, x) =>
             {
                 foreach (Dot d in nonWinList)

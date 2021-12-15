@@ -10,11 +10,11 @@ using System.Threading.Tasks;
 
 namespace hexaGonalClient.game
 {
-    class HexaBot
+    partial class HexaBot
     {
-        
+
         // posibilities for the bot
-        private Dictionary<Coords, int> pointCloud = new();
+        private Dictionary<Coords, BotMoveVal> pointCloud = new();
         // currently placed dots
         private Dictionary<Coords, Player> points = new();
         private Coords lastEnemyPoint = null;
@@ -22,6 +22,7 @@ namespace hexaGonalClient.game
         private List<BotLutEntry> scoreLookup = new();
 
         public Player Player { get; set; }
+        public Player Opponent { get; set; }
 
         private static readonly int pCloudRadius = 3;
         private static readonly int checkRadius = 4;
@@ -44,6 +45,15 @@ namespace hexaGonalClient.game
             new Coords(-1, 1)
         };
 
+        public enum Difficulties
+        {
+            Easy = 1,
+            Hard = 4,
+            VeryHard = 8
+        }
+
+        public Difficulties Difficulty { get; set; }
+
         private readonly Coords[,] rowDefinition = new Coords[directionAxis.Length, checkDiam]; 
 
 
@@ -51,6 +61,7 @@ namespace hexaGonalClient.game
         {
             InitRowCoords();
             LoadLut();
+            Difficulty = Difficulties.Hard;
         }
 
         public void Clear()
@@ -81,40 +92,77 @@ namespace hexaGonalClient.game
             if (lastEnemyPoint == null)
                 return new Coords(0, 0);
 
-            CalcBestMoves(Player);
+            
+            Coords ret = null;
 
+            if (Difficulty == Difficulties.Hard) {
+                ScoreMoves(Player);
+                List<Coords> bestMoves = GetBestMoves();
+                
+                if (bestMoves.Count == 1)
+                    ret = bestMoves[0];
+                else if (bestMoves.Count > 1)
+                    ret = bestMoves[rand.Next(0, bestMoves.Count - 1)];
+            }
+            else if (Difficulty == Difficulties.VeryHard)
+            {
+                BotMove root = new BotMove(null, null);
+                GenMoveTree(root, Player, Opponent);
+            }
+
+
+
+
+
+
+
+            Console.WriteLine("HexaBot Eval in " + sw.ElapsedMilliseconds + "ms");
+            return ret;
+        }
+
+        private void GenMoveTree(BotMove bm, Player p , Player op, int depth = 0)
+        {
+            ScoreMoves(Player);
+            List<Coords> topMoves = GetTopMoves(5);
+
+        }
+
+        private List<Coords> GetBestMoves()
+        {
             List<Coords> bestMoves = new();
             int score = 0;
-            foreach (var v in pointCloud)
+            foreach (KeyValuePair<Coords, BotMoveVal> v in pointCloud)
             {
-                if (v.Value > score)
+                if (v.Value.Score > score)
                 {
                     bestMoves.Clear();
                     bestMoves.Add(v.Key);
-                    score = v.Value;
+                    score = v.Value.Score;
                 }
-                else if (v.Value == score)
+                else if (v.Value.Score == score)
                     bestMoves.Add(v.Key);
             }
 
-            Console.WriteLine("HexaBot Eval in " + sw.ElapsedMilliseconds + "ms");
+            return bestMoves;
+        }
 
-            if (bestMoves.Count == 1)
-                return bestMoves[0];
-            else if (bestMoves.Count > 1)
-                return bestMoves[rand.Next(0, bestMoves.Count - 1)];
-            else
-                return null;
+        private List<Coords> GetTopMoves(int n)
+        {
+            List<Coords> topMoves = new();
+            var l = pointCloud.ToList();
+            l.Sort((a, b) => a.Value.Score > b.Value.Score ? 1 : a.Value == b.Value ? 0 : -1);
+            n = n > l.Count ? l.Count : n;
+            return l.GetRange(0, n).Select(kvp => kvp.Key).ToList();
         }
 
 
-        private void CalcBestMoves(Player p)
+        private void ScoreMoves(Player p)
         {
             //instead of creating a new array each iteration uses this buffer
             int[] buffer = new int[checkDiam];
             foreach (Coords point in pointCloud.Keys)
             {
-                int pointScore = 0;
+                BotMoveVal pointScore = new BotMoveVal();
                 for (int i = 0; i < directionAxis.Length; i++)
                     pointScore += ScoreRow(GetRow(buffer, p, point, i));
 
@@ -157,23 +205,23 @@ namespace hexaGonalClient.game
                     {
                         pointer += dir;
                         if (!pointCloud.ContainsKey(pointer) && !points.ContainsKey(pointer))
-                            pointCloud.Add(pointer, 0);
+                            pointCloud.Add(pointer, new());
                     }
                 }
             }
         }
 
-        public Dictionary<Coords, int> getCloud()
+        public Dictionary<Coords, BotMoveVal> getCloud()
         {
             return pointCloud;
         }
 
-        private int ScoreRow(int[] row)
+        private BotMoveVal ScoreRow(int[] row)
         {
-            int score = 0;
+            BotMoveVal score = new();
             foreach (BotLutEntry bl in scoreLookup)
             {
-                if (score > 0 && bl.IsBreak)
+                if (score.IsGtZero() && bl.IsBreak)
                     break;
 
                 score += bl.Check(row);

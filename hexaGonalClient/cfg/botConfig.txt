@@ -2,20 +2,21 @@
 ##
 ## Defines the lookup table for the computer player
 ## Each possible move is cehcked against the patterns below and scored with the value of $s additively
-## that should in theory make moves which acomlish more than one thing more likely to be played
+## that should in theory make moves which acomplish more than one thing more likely to be played
 ##
 ## note: all definitions are additionally loaded as mirrors so there is no need to define a reverse manually
 ##
 ## 1 = friendly 
 ## 2 = enemy
-## $s = value of move ( >= 0)
-## $v = strategic value of the move 
+## $s = urgency/score of move ( >= 0) (attack/survive high, prep or spread low)
+## $v = strategic value of the move (attack high, defend low)
 ## !break : if match till now abort used for forced moves
 ##
 ## all combinations that don' exceed a length of 4 from v are valid
 
 #win
 $s = 100000
+$v = 100000
 x 1 1 1 1
 1 x 1 1 1
 1 1 x 1 1
@@ -23,6 +24,7 @@ x 1 1 1 1
 
 #defend check
 $s = 90000
+$v = 10
 x 2 2 2 2
 2 x 2 2 2
 2 2 x 2 2
@@ -30,16 +32,19 @@ x 2 2 2 2
 
 #win next turn
 $s = 80000
+$v = 80000
 0 x 1 1 1 0
 0 1 x 1 1 0
 
 # defend against enemy checkmates
 $s = 10000
+$v = 20
 x 2 2 2 0
 0 2 2 x 2 0
 
-#attack - forces enem to move
+#attack - forces enemy to move
 $s = 100
+$v = 100
 0 x 1 1 1
 x 0 1 1 1 
 0 x 1 1 0
@@ -48,14 +53,17 @@ x 0 1 1 1
 
 # attack - create opportunities
 $s = 10
+$v = 50
 0 x 1 0
 0 x 0 1 0
 $s = 6
+$v = 25
 1 0 x 0 1
 x 0 0 1 
 
 # defend - block opportunities
 $s = 8
+$v = 5
 2 x 2
 x 2 2
 $s = 5
@@ -67,6 +75,7 @@ x 2 2 0
 
 # small points for uncertain situations
 $s = 1
+$v = 1
 x 2
 x 1
 x 0 2
