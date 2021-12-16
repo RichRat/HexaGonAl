@@ -14,7 +14,7 @@ namespace hexaGonalClient.game.util
         private static readonly Regex isNum = new(@"\d+");
 
         private int[] pattern;
-        private BotMoveVal val;
+        private BotVal val;
         private int offset;
 
         public bool IsBreak { get; }
@@ -63,7 +63,7 @@ namespace hexaGonalClient.game.util
                 
         }
 
-        public BotMoveVal Check(int[] check)
+        public BotVal Check(int[] check)
         {
             return IsMatch(check) ? val : new();
         }

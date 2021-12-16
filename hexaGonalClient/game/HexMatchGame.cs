@@ -334,7 +334,7 @@ namespace hexaGoNal.game
                 if (c.Value.Score > max)
                     max = c.Value.Score;
 
-            foreach (KeyValuePair<Coords, BotMoveVal> c in bot.getCloud())
+            foreach (KeyValuePair<Coords, BotVal> c in bot.getCloud())
             {
                 Dot d = new(tmp, dotDiameter);
                 d.Shape.Opacity = 0.3;

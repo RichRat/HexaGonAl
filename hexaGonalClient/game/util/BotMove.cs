@@ -15,17 +15,35 @@ namespace hexaGonalClient.game.util
 
         public List<BotMove> Children { get; set; }
 
-        public int Score { get; set; }
-        public int Value { get; set; }
+        public BotVal Val { get; set; }
 
-        public BotMove(Coords c, Player p ,BotMove parent = null)
+        public BotMove(Coords c, Player p)
         {
             pos = c;
-            this.parent = parent;
             player = p;
         }
 
+        public BotMove(Coords c, Player p, BotVal val, BotMove parent) : this(c, p)
+        {
+            Val = val;
+            this.parent = parent;
+        }
+
         public bool IsRoot => parent == null;
+
+        public BotVal ValueOfSubtree(Player p)
+        {
+            BotVal val = Val.Clone();
+
+            //opponent val is subtracted from the overal subtree value
+            if (p != player)
+                val = -val;
+
+            foreach (BotMove m in Children)
+                val += m.ValueOfSubtree(p);
+
+            return val;
+        }
 
     }
 }
