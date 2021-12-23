@@ -16,6 +16,7 @@ namespace hexaGonalClient.game.util
         public List<BotMove> Children { get; set; }
 
         public BotVal Val { get; set; }
+        public Coords Position { get => pos; }
 
         public BotMove(Coords c, Player p)
         {
@@ -45,5 +46,12 @@ namespace hexaGonalClient.game.util
             return val;
         }
 
+        public void addChild(BotMove child)
+        {
+            if (Children == null)
+                Children = new();
+
+            Children.Add(child);
+        }
     }
 }

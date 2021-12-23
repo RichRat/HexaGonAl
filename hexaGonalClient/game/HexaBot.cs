@@ -120,6 +120,9 @@ namespace hexaGonalClient.game
                     }
                     else if (bm.Val.StrategicValue == max.StrategicValue)
                         bestMoves.Add(bm);
+
+                    if (bestMoves.Count > 0)
+                        ret = bestMoves[rand.Next(0, bestMoves.Count)].Position;
                 }
             }
 
@@ -135,6 +138,7 @@ namespace hexaGonalClient.game
             foreach (Coords cMov in GetTopMoves(5))
             {
                 BotMove move = new(cMov, p, cloud[cMov], bm);
+                bm.addChild(move);
                 points.Add(cMov, p);
                 cloud.Remove(cMov);
                 List<Coords> addCloud = GeneratePointCloud(cMov, pCloudRadius);
