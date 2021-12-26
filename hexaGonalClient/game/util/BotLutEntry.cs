@@ -14,19 +14,32 @@ namespace hexaGonalClient.game.util
         private static readonly Regex isNum = new(@"\d+");
 
         private int[] pattern;
-        private BotVal val;
+        public BotVal Value { get; set; }
         private int offset;
 
         public bool IsBreak { get; }
 
-        public BotLutEntry(bool isBreak = true)
+        public bool IsComboStart { get; set; }
+        public bool isComboAND { get; set; }
+        public bool isComboEND { get; set; }
+
+        public BotLutEntry(string flag = "")
         {
-            IsBreak = isBreak;
+            switch (flag)
+            {
+                case "!break": IsBreak = true; break;
+                case "!combo": IsComboStart = true; break;
+                case "!and": isComboAND = true; break;
+                case "!end": isComboEND = true; break;
+
+                default:
+                    break;
+            }
         }
 
         public BotLutEntry(string input, int score, int stratValue)
         {
-            val = new(score, stratValue);
+            Value = new(score, stratValue);
             IsBreak = false;
             
             if (input == null)
@@ -54,18 +67,24 @@ namespace hexaGonalClient.game.util
         {
             if (IsBreak)
                 return "!break";
+            else if (IsComboStart)
+                return "!combo";
+            else if (isComboAND)
+                return "!AND";
+            else if (isComboEND)
+                return "!END";
 
             String ret = "";
             foreach (int b in pattern)
                 ret += b + " ";
 
-            return ret + " " + val;
+            return ret + " " + Value;
                 
         }
 
         public BotVal Check(int[] check)
         {
-            return IsMatch(check) ? val : new();
+            return IsMatch(check) ? Value : new();
         }
 
         public bool IsMatch(int[] check)
@@ -84,11 +103,11 @@ namespace hexaGonalClient.game.util
 
         public BotLutEntry Mirror()
         {
-            if (IsBreak)
+            if (IsBreak || IsComboStart || isComboAND || isComboEND)
                 return this;
 
-            BotLutEntry bl = new(false);
-            bl.val = val.Clone();
+            BotLutEntry bl = new();
+            bl.Value = Value.Clone();
             bl.pattern = new int[pattern.Length];
             for (int i = 0; i < pattern.Length; i++)
                 bl.pattern[i] = pattern[pattern.Length - 1 - i];
@@ -107,7 +126,7 @@ namespace hexaGonalClient.game.util
             if (bl.IsBreak)
                 return IsBreak == bl.IsBreak;
 
-            return val.Equals(bl.val) && pattern.SequenceEqual(bl.pattern);
+            return Value.Equals(bl.Value) && pattern.SequenceEqual(bl.pattern);
         }
 
         public override int GetHashCode()

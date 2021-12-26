@@ -62,7 +62,7 @@ namespace hexaGonalClient.game
         {
             InitRowCoords();
             LoadLut();
-            Difficulty = Difficulties.VeryHard;
+            Difficulty = Difficulties.Hard;
         }
 
         public void Clear()
@@ -252,12 +252,46 @@ namespace hexaGonalClient.game
         private BotVal ScoreRow(int[] row)
         {
             BotVal score = new();
+            bool combo = false;
+            int comboIndex = 0;
+            int[] comboHit = new int[10];
             foreach (BotLutEntry bl in scoreLookup)
             {
                 if (score.IsPositive() && bl.IsBreak)
                     break;
 
-                score += bl.Check(row);
+                if (bl.IsComboStart)
+                {
+                    combo = true;
+                    comboHit = new int[10];
+                    comboIndex = 0;
+                }
+
+                if (bl.isComboAND)
+                    comboIndex++;
+
+                // score combo on end tag which contains the score for the combination
+                if (bl.isComboEND)
+                {
+                    combo = false;
+                    bool v = true;
+                    for (int i = comboIndex; i >= 0; i--)
+                        if (comboHit[i] <= 0)
+                            v = false;
+
+                    if (v)
+                        score += bl.Value;
+
+                    continue;
+                }
+
+                if (!combo)
+                    score += bl.Check(row);
+                else
+                {
+                    if (bl.Check(row).IsPositive())
+                        comboHit[comboIndex]++;
+                }
             }
 
             return score;
@@ -268,17 +302,21 @@ namespace hexaGonalClient.game
         /// </summary>
         public void LoadLut()
         {
-            Regex reg = new(@"^[!$012x]");
+            Regex reg = new(@"^\s*[!$012x]");
             Regex num = new(@"[+-]{0,1}\d+");
             Regex varScore = new(@"\$s = ");
             Regex varValue = new(@"\$v = ");
+            Regex flag = new(@"!\w+");
+            Regex remLeadingWhitespace = new(@"^\s+(.*)$");
 
             int score = 0;
             int stratValue = 0; //TODO introduce startegic value to botlutentry
-            foreach (string line in Properties.Resources.botConfig.Split('\n'))
+            foreach (string _line in Properties.Resources.botConfig.Split('\n'))
             {
-                if (string.IsNullOrEmpty(line) || line.Length < 2 || !reg.IsMatch(line))
+                if (string.IsNullOrEmpty(_line) || _line.Length < 2 || !reg.IsMatch(_line))
                     continue;
+
+                string line = _line.Trim();
 
                 char s = line[0];
                 switch (s)
@@ -296,11 +334,11 @@ namespace hexaGonalClient.game
 
                         break;
                     case '!':
-                        if (line.Contains("!break"))
-                        {
-                            scoreLookup.Add(new BotLutEntry());
-                            Console.WriteLine("!break");
-                        }
+                        BotLutEntry ble = new(line);
+                        if (line.Contains("!end"))
+                            ble.Value = new(score, stratValue);
+
+                        scoreLookup.Add(ble);
                         break;
                     case '0':
                     case '1':
