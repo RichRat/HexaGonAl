@@ -138,7 +138,7 @@ namespace hexaGonalClient.game
             foreach (Coords cMov in GetTopMoves(5))
             {
                 BotMove move = new(cMov, p, cloud[cMov], bm);
-                bm.addChild(move);
+                bm.AddChild(move);
                 points.Add(cMov, p);
                 cloud.Remove(cMov);
                 List<Coords> addCloud = GeneratePointCloud(cMov, pCloudRadius);

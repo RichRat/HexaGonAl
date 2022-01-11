@@ -46,7 +46,7 @@ namespace hexaGonalClient.game.util
             return val;
         }
 
-        public void addChild(BotMove child)
+        public void AddChild(BotMove child)
         {
             if (Children == null)
                 Children = new();

@@ -81,7 +81,7 @@ namespace hexaGonalClient.game.util
 
         public override int GetHashCode()
         {
-            return ToString().GetHashCode();
+            return HashCode.Combine(Score, StrategicValue);
         }
     }
 }
