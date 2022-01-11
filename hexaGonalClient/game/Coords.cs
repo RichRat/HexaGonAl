@@ -11,7 +11,7 @@ namespace hexaGonalClient.game
         public int X { get; set; }
         public int Y { get; set; }
 
-        public Coords(int x, int y)
+        public Coords(int x = 0, int y = 0)
         {
             X = x;
             Y = y;
@@ -19,11 +19,8 @@ namespace hexaGonalClient.game
 
         public override bool Equals(object obj)
         {
-            if (obj is Coords)
-            {
-                Coords b = (Coords)obj;
+            if (obj is Coords b)
                 return X == b.X && Y == b.Y;
-            }
 
             return false;
         }

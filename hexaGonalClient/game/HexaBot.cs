@@ -91,7 +91,7 @@ namespace hexaGonalClient.game
             sw.Start();
             //if bot has first move just place at 0 0
             if (lastEnemyPoint == null)
-                return new Coords(0, 0);
+                return new();
 
             
             Coords ret = null;
@@ -130,12 +130,24 @@ namespace hexaGonalClient.game
             return ret;
         }
 
+        //TODO make setting?
         int moveTreeDepth = 1;
+        int moveTreeTopMoveCount = 10;
 
+
+        //NOTE Current implemntation is great at attacking but horrible at defending! 
+        //     Its probably because defensive forces are not handeled correctly
+        //     that probably means i have to factor in the urgency score as well at least at depth = 0
+        //TODO implement debug display for move tree feature (strategic value and 
         private void GenMoveTree(BotMove bm, Player p, Player op, int depth = 0)
         {
             ScoreMoves(Player);
-            foreach (Coords cMov in GetTopMoves(5))
+
+            List<Coords> topMoves = (from cle in cloud
+                    orderby cle.Value.Score descending
+                    select cle.Key).Take(moveTreeTopMoveCount).ToList();
+
+            foreach (Coords cMov in topMoves)
             {
                 BotMove move = new(cMov, p, cloud[cMov], bm);
                 bm.AddChild(move);
@@ -171,16 +183,6 @@ namespace hexaGonalClient.game
 
             return bestMoves;
         }
-
-        private List<Coords> GetTopMoves(int n)
-        {
-            List<Coords> topMoves = new();
-            var l = cloud.ToList();
-            l.Sort((a, b) => a.Value.Score > b.Value.Score ? 1 : a.Value.Score == b.Value.Score ? 0 : -1);
-            n = n > l.Count ? l.Count : n;
-            return l.GetRange(0, n).Select(kvp => kvp.Key).ToList();
-        }
-
 
         private void ScoreMoves(Player p)
         {
@@ -244,7 +246,7 @@ namespace hexaGonalClient.game
             return ret;
         }
 
-        public Dictionary<Coords, BotVal> getCloud()
+        public Dictionary<Coords, BotVal> GetCloud()
         {
             return cloud;
         }

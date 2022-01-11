@@ -330,11 +330,11 @@ namespace hexaGoNal.game
             debugRemove.Clear();
             Player tmp = new(Colors.Gray, "debug");
             int max = 1;
-            foreach (var c in bot.getCloud())
+            foreach (var c in bot.GetCloud())
                 if (c.Value.Score > max)
                     max = c.Value.Score;
 
-            foreach (KeyValuePair<Coords, BotVal> c in bot.getCloud())
+            foreach (KeyValuePair<Coords, BotVal> c in bot.GetCloud())
             {
                 Dot d = new(tmp, dotDiameter);
                 d.Shape.Opacity = 0.3;
@@ -521,8 +521,8 @@ namespace hexaGoNal.game
                 prevCoords = bot.CalcTurn();
                 prevDot = new Dot(bot.Player, dotDiameter);
 #if DEBUG
-                if (bot.getCloud().ContainsKey(prevCoords))
-                    prevDot.Shape.ToolTip = "Score: " + bot.getCloud()[prevCoords];
+                if (bot.GetCloud().ContainsKey(prevCoords))
+                    prevDot.Shape.ToolTip = "Score: " + bot.GetCloud()[prevCoords];
 #endif
                 Vector dotOffset = CoordsToScreen(prevCoords);
                 SetLeft(prevDot.Shape, dotOffset.X - dotDiameter / 2);
