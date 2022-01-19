@@ -106,7 +106,7 @@ namespace hexaGonalClient.game
             }
             else if (Difficulty == Difficulties.VeryHard)
             {
-                BotMove root = new BotMove(null, null);
+                root = new BotMove(null, null);
                 GenMoveTree(root, Player, Opponent);
                 List<BotMove> bestMoves = new();
                 BotVal max = new();
@@ -130,9 +130,16 @@ namespace hexaGonalClient.game
             return ret;
         }
 
+        BotMove root;
+
+        public BotMove GetMoveTree()
+        {
+            return root;
+        }
+
         //TODO make setting?
-        int moveTreeDepth = 1;
-        int moveTreeTopMoveCount = 10;
+        int moveTreeDepth = 3;
+        int moveTreeTopMoveCount = 12;
 
 
         //NOTE Current implemntation is great at attacking but horrible at defending! 
@@ -143,23 +150,30 @@ namespace hexaGonalClient.game
         {
             ScoreMoves(Player);
 
-            List<Coords> topMoves = (from cle in cloud
-                    orderby cle.Value.Score descending
-                    select cle.Key).Take(moveTreeTopMoveCount).ToList();
+            var topMoves = (
+                from cle in cloud
+                orderby cle.Value.Score descending
+                select cle)
+                    .Take(moveTreeTopMoveCount)
+                    .Select(cle => new BotMove(cle.Key, p, cle.Value, bm))
+                    .ToList();
 
-            foreach (Coords cMov in topMoves)
+            if (topMoves[0].Val.Score >= 10000)
+                topMoves = topMoves.FindAll(bm => bm.Val.Score >= 10000);
+
+            foreach (BotMove move in topMoves)
             {
-                BotMove move = new(cMov, p, cloud[cMov], bm);
+                //BotMove move = new(cMov, p, cloud[cMov], bm);
                 bm.AddChild(move);
-                points.Add(cMov, p);
-                cloud.Remove(cMov);
-                List<Coords> addCloud = GeneratePointCloud(cMov, pCloudRadius);
+                points.Add(move.Position, p);
+                cloud.Remove(move.Position);
+                List<Coords> addCloud = GeneratePointCloud(move.Position, pCloudRadius);
 
                 if (depth < moveTreeDepth)
                     GenMoveTree(move, op, p, depth + 1);
 
-                points.Remove(cMov);
-                cloud.Add(cMov, new());
+                points.Remove(move.Position);
+                cloud.Add(move.Position, new());
                 foreach (Coords co in addCloud)
                     cloud.Remove(co);
             }

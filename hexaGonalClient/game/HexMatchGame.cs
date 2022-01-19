@@ -329,22 +329,30 @@ namespace hexaGoNal.game
 
             debugRemove.Clear();
             Player tmp = new(Colors.Gray, "debug");
-            int max = 1;
-            foreach (var c in bot.GetCloud())
-                if (c.Value.Score > max)
-                    max = c.Value.Score;
 
-            foreach (KeyValuePair<Coords, BotVal> c in bot.GetCloud())
+
+            List<BotMove> moves;
+            if (bot.Difficulty == HexaBot.Difficulties.Hard)
+                moves = bot.GetCloud().Select(o => new BotMove(o.Key, ActivePlayer, o.Value, null)).ToList();
+            else
+                moves = bot.GetMoveTree().Children; //TODO use value of subtree 
+
+            int max = 1;
+            foreach (BotMove mov in moves)
+                if (mov.Val.Score > max)
+                    max = mov.Val.Score;
+
+            foreach (BotMove c in moves)
             {
                 Dot d = new(tmp, dotDiameter);
                 d.Shape.Opacity = 0.3;
-                Vector v = CoordsToScreen(c.Key);
+                Vector v = CoordsToScreen(c.Position);
                 Canvas.SetLeft(d.Shape, v.X - dotDiameter / 2);
                 Canvas.SetTop(d.Shape, v.Y - dotDiameter / 2);
                 offCan.Children.Add(d.Shape);
-                d.Shape.ToolTip = "Score: " + c.Value;
+                d.Shape.ToolTip = "Score: " + c.Val;
                 d.Shape.Fill = new SolidColorBrush(Util.ModColBrightness(
-                    Color.FromRgb(0x11, 0x11, 0x11), (double)c.Value.Score / (double)max));
+                    Color.FromRgb(0x11, 0x11, 0x11), (double)c.Val.Score / (double)max));
                 debugRemove.Add(d);
             }
         }
