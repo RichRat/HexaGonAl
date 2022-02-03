@@ -339,8 +339,8 @@ namespace hexaGoNal.game
 
             int max = 1;
             foreach (BotMove mov in moves)
-                if (mov.Val.Score > max)
-                    max = mov.Val.Score;
+                if (mov.Val.StrategicValue > max)
+                    max = mov.Val.StrategicValue;
 
             foreach (BotMove c in moves)
             {
@@ -352,7 +352,7 @@ namespace hexaGoNal.game
                 offCan.Children.Add(d.Shape);
                 d.Shape.ToolTip = "Score: " + c.Val;
                 d.Shape.Fill = new SolidColorBrush(Util.ModColBrightness(
-                    Color.FromRgb(0x11, 0x11, 0x11), (double)c.Val.Score / (double)max));
+                    Color.FromRgb(0x11, 0x11, 0x11), (double)c.Val.StrategicValue / (double)max));
                 debugRemove.Add(d);
             }
         }

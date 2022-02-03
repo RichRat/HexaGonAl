@@ -110,6 +110,7 @@ namespace hexaGonalClient.game
                 GenMoveTree(root, Player, Opponent);
                 List<BotMove> bestMoves = new();
                 BotVal max = new();
+                BotMove retMove = null;
                 foreach (BotMove bm in root.Children)
                 {
                     if (bm.Val.StrategicValue > max.StrategicValue)
@@ -122,11 +123,15 @@ namespace hexaGonalClient.game
                         bestMoves.Add(bm);
 
                     if (bestMoves.Count > 0)
-                        ret = bestMoves[rand.Next(0, bestMoves.Count)].Position;
+                        retMove = bestMoves[rand.Next(0, bestMoves.Count)];
                 }
+
+                Console.WriteLine("Bot VeryHard Selected Move Score: " + retMove.Val);
+                ret = retMove.Position;
             }
 
             Console.WriteLine("HexaBot Eval in " + sw.ElapsedMilliseconds + "ms");
+            
             return ret;
         }
 
@@ -150,18 +155,11 @@ namespace hexaGonalClient.game
         {
             ScoreMoves(Player);
 
-            var topMoves = (
-                from cle in cloud
-                orderby cle.Value.Score descending
-                select cle)
-                    .Take(moveTreeTopMoveCount)
-                    .Select(cle => new BotMove(cle.Key, p, cle.Value, bm))
-                    .ToList();
+            List<Coords> topMoves = (from cle in cloud
+                    orderby cle.Value.Score descending
+                    select cle.Key).Take(moveTreeTopMoveCount).ToList();
 
-            if (topMoves[0].Val.Score >= 10000)
-                topMoves = topMoves.FindAll(bm => bm.Val.Score >= 10000);
-
-            foreach (BotMove move in topMoves)
+            foreach (Coords cMov in topMoves)
             {
                 //BotMove move = new(cMov, p, cloud[cMov], bm);
                 bm.AddChild(move);
@@ -204,7 +202,7 @@ namespace hexaGonalClient.game
             int[] buffer = new int[checkDiam];
             foreach (Coords point in cloud.Keys)
             {
-                BotVal pointScore = new BotVal();
+                BotVal pointScore = new();
                 for (int i = 0; i < directionAxis.Length; i++)
                     pointScore += ScoreRow(GetRow(buffer, p, point, i));
 
@@ -288,9 +286,11 @@ namespace hexaGonalClient.game
             Regex num = new(@"[+-]{0,1}\d+");
             Regex varScore = new(@"\$s = ");
             Regex varValue = new(@"\$v = ");
+            Regex varFailFlag = new(@"\$f = ");
 
             int score = 0;
             int stratValue = 0; //TODO introduce startegic value to botlutentry
+            bool forced = false;
             foreach (string line in Properties.Resources.botConfig.Split('\n'))
             {
                 if (string.IsNullOrEmpty(line) || line.Length < 2 || !reg.IsMatch(line))
@@ -308,6 +308,8 @@ namespace hexaGonalClient.game
                                 score = val;
                             else if (varValue.IsMatch(line))
                                 stratValue = val;
+                            else if (varFailFlag.IsMatch(line))
+                                forced = val == 1;
                         }
 
                         break;
@@ -322,7 +324,7 @@ namespace hexaGonalClient.game
                     case '1':
                     case '2':
                     case 'x':
-                        BotLutEntry ble = new(line, score, stratValue);
+                        BotLutEntry ble = new(line, score, stratValue, forced);
                         Console.WriteLine(ble);
                         scoreLookup.Add(ble);
                         BotLutEntry bleMir = ble.Mirror();

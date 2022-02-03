@@ -21,10 +21,13 @@ namespace hexaGonalClient.game.util
         /// </summary>
         public int StrategicValue { get; set; }
 
-        public BotVal(int score, int value)
+        public bool ForcedFlag { get; set; }
+
+        public BotVal(int score, int value, bool forced = false)
         {
             Score = score;
             StrategicValue = value;
+            ForcedFlag = forced;
         }
 
         /// <summary>
@@ -38,17 +41,17 @@ namespace hexaGonalClient.game.util
 
         public static BotVal operator +(BotVal a, BotVal b)
         {
-            return new BotVal(a.Score + b.Score, a.StrategicValue + b.StrategicValue);
+            return new BotVal(a.Score + b.Score, a.StrategicValue + b.StrategicValue, a.ForcedFlag || b.ForcedFlag);
         }
 
         public static BotVal operator -(BotVal a, BotVal b)
         {
-            return new BotVal(a.Score - b.Score, a.StrategicValue - b.StrategicValue);
+            return new BotVal(a.Score - b.Score, a.StrategicValue - b.StrategicValue, a.ForcedFlag || b.ForcedFlag);
         }
 
         public static BotVal operator -(BotVal bv)
         {
-            return new BotVal(-bv.Score, -bv.StrategicValue);
+            return new BotVal(-bv.Score, -bv.StrategicValue, bv.ForcedFlag);
         }
 
         /// <summary>
@@ -62,12 +65,12 @@ namespace hexaGonalClient.game.util
 
         public override string ToString()
         {
-            return "(" + Score + ", " + StrategicValue + ")";
+            return "(" + Score + ", " + StrategicValue + (ForcedFlag ? ", f" : "") +")";
         }
 
         public BotVal Clone()
         {
-            return new(Score, StrategicValue);
+            return new(Score, StrategicValue, ForcedFlag);
         }
 
         public override bool Equals(object obj)
@@ -76,12 +79,12 @@ namespace hexaGonalClient.game.util
                 return false;
 
             BotVal bmv = obj as BotVal;
-            return bmv.Score == Score && bmv.StrategicValue == StrategicValue;
+            return bmv.Score == Score && bmv.StrategicValue == StrategicValue && ForcedFlag == bmv.ForcedFlag;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Score, StrategicValue);
+            return HashCode.Combine(Score, StrategicValue, ForcedFlag);
         }
     }
 }

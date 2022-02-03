@@ -24,9 +24,9 @@ namespace hexaGonalClient.game.util
             IsBreak = isBreak;
         }
 
-        public BotLutEntry(string input, int score, int stratValue)
+        public BotLutEntry(string input, int score, int stratValue, bool isForced)
         {
-            val = new(score, stratValue);
+            val = new(score, stratValue, isForced);
             IsBreak = false;
             
             if (input == null)
@@ -47,8 +47,6 @@ namespace hexaGonalClient.game.util
                 }
             }
         }
-
-        //TODO check function which returns a score if matching
 
         public override string ToString()
         {

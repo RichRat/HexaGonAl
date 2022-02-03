@@ -10,13 +10,15 @@
 ## 2 = enemy
 ## $s = urgency/score of move ( >= 0) (attack/survive high, prep or spread low)
 ## $v = strategic value of the move (attack high, defend low)
+## $f = fail flag (0, 1)
 ## !break : if match till now abort used for forced moves
 ##
 ## all combinations that don' exceed a length of 4 from v are valid
 
 #win
-$s = 100000
-$v = 100000
+$s = 1000000
+$v = 1000000
+$f = 1
 x 1 1 1 1
 1 x 1 1 1
 1 1 x 1 1
@@ -45,6 +47,7 @@ x 2 2 2 0
 #attack - forces enemy to move
 $s = 100
 $v = 100
+$f = 0
 0 x 1 1 1
 x 0 1 1 1 
 0 x 1 1 0
