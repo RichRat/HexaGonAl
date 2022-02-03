@@ -9,7 +9,7 @@ namespace hexaGonalClient.game.util
     /// <summary>
     /// Two dimension integer class used for bot lookup tabl
     /// </summary>
-    class BotVal
+    struct BotVal
     {
         /// <summary>
         /// urgency score
@@ -23,20 +23,11 @@ namespace hexaGonalClient.game.util
 
         public bool ForcedFlag { get; set; }
 
-        public BotVal(int score, int value, bool forced = false)
+        public BotVal(int score = 0, int value = 0, bool forced = false)
         {
             Score = score;
             StrategicValue = value;
             ForcedFlag = forced;
-        }
-
-        /// <summary>
-        /// creates zero value instance, identical to new BotMoveVal(0, 0)
-        /// </summary>
-        public BotVal()
-        {
-            Score = 0;
-            StrategicValue = 0;
         }
 
         public static BotVal operator +(BotVal a, BotVal b)
@@ -54,15 +45,6 @@ namespace hexaGonalClient.game.util
             return new BotVal(-bv.Score, -bv.StrategicValue, bv.ForcedFlag);
         }
 
-        /// <summary>
-        /// check value for being positive in either score or value
-        /// </summary>
-        /// <returns>true if either score or value are greater than zero</returns>
-        public bool IsPositive()
-        {
-            return Score > 0 || StrategicValue > 0;
-        }
-
         public override string ToString()
         {
             return "(" + Score + ", " + StrategicValue + (ForcedFlag ? ", f" : "") +")";
@@ -78,7 +60,7 @@ namespace hexaGonalClient.game.util
             if (obj == null || obj is not BotVal)
                 return false;
 
-            BotVal bmv = obj as BotVal;
+            BotVal bmv = (BotVal)obj;
             return bmv.Score == Score && bmv.StrategicValue == StrategicValue && ForcedFlag == bmv.ForcedFlag;
         }
 

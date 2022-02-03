@@ -17,6 +17,11 @@ namespace hexaGonalClient.game.util
         private BotVal val;
         private int offset;
 
+        public BotVal Value
+        {
+            get => val;
+        }
+
         public bool IsBreak { get; }
 
         public BotLutEntry(bool isBreak = true)
@@ -61,12 +66,7 @@ namespace hexaGonalClient.game.util
                 
         }
 
-        public BotVal Check(int[] check)
-        {
-            return IsMatch(check) ? val : new();
-        }
-
-        public bool IsMatch(int[] check)
+        public bool Check(int[] check)
         {
             if (IsBreak)
                 return false;

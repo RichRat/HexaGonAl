@@ -144,7 +144,7 @@ namespace hexaGonalClient.game
 
         //TODO make setting?
         int moveTreeDepth = 3;
-        int moveTreeTopMoveCount = 12;
+        int moveTreeTopMoveCount = 10;
 
 
         //NOTE Current implemntation is great at attacking but horrible at defending! 
@@ -155,11 +155,30 @@ namespace hexaGonalClient.game
         {
             ScoreMoves(Player);
 
-            List<Coords> topMoves = (from cle in cloud
-                    orderby cle.Value.Score descending
-                    select cle.Key).Take(moveTreeTopMoveCount).ToList();
+            bool forced = false;
+            foreach (var e in cloud.Values)
+                if (e.ForcedFlag)
+                {
+                    forced = true;
+                    break;
+                }
 
-            foreach (Coords cMov in topMoves)
+            List<BotMove> topMoves = (
+                from cle in cloud
+                where cle.Value.ForcedFlag == forced
+                orderby cle.Value.Score descending
+                select cle.Key)
+                .Take(moveTreeTopMoveCount)
+                .Select(c => new BotMove(c, p, cloud[c], bm))
+                .ToList();
+
+            if (topMoves.Count == 1)
+            {
+                bm.AddChild(topMoves[0]);
+                return;
+            }
+
+            foreach (BotMove move in topMoves)
             {
                 //BotMove move = new(cMov, p, cloud[cMov], bm);
                 bm.AddChild(move);
@@ -268,10 +287,11 @@ namespace hexaGonalClient.game
             BotVal score = new();
             foreach (BotLutEntry bl in scoreLookup)
             {
-                if (score.IsPositive() && bl.IsBreak)
+                if ((score.Score > 0 || score.StrategicValue > 0) && bl.IsBreak)
                     break;
 
-                score += bl.Check(row);
+                if (bl.Check(row))
+                    score += bl.Value;
             }
 
             return score;
