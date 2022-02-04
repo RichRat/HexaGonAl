@@ -45,6 +45,11 @@ namespace hexaGonalClient.game.util
             return new BotVal(-bv.Score, -bv.StrategicValue, bv.ForcedFlag);
         }
 
+        public static BotVal operator /(BotVal a, int b)
+        {
+            return new BotVal(a.Score / b, a.StrategicValue / b, a.ForcedFlag);
+        }
+
         public override string ToString()
         {
             return "(" + Score + ", " + StrategicValue + (ForcedFlag ? ", f" : "") +")";

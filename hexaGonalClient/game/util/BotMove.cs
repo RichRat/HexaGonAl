@@ -40,8 +40,16 @@ namespace hexaGonalClient.game.util
             if (p != player)
                 val = -val;
 
-            foreach (BotMove m in Children)
-                val += m.ValueOfSubtree(p);
+            if (Children != null)
+            {
+                BotVal childSum = new();
+                foreach (BotMove m in Children)
+                    childSum += m.ValueOfSubtree(p);
+
+                //TODO chekc if average is a good idea here
+                val += childSum / Children.Count;
+            }
+                
 
             return val;
         }

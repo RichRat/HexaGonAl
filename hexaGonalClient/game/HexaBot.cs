@@ -109,17 +109,18 @@ namespace hexaGonalClient.game
                 root = new BotMove(null, null);
                 GenMoveTree(root, Player, Opponent);
                 List<BotMove> bestMoves = new();
-                BotVal max = new();
+                BotVal max = new(int.MinValue, int.MinValue);
                 BotMove retMove = null;
                 foreach (BotMove bm in root.Children)
                 {
-                    if (bm.Val.StrategicValue > max.StrategicValue)
+                    BotVal val = bm.ValueOfSubtree(Player);
+                    if (val.StrategicValue > max.StrategicValue)
                     {
                         bestMoves.Clear();
-                        max = bm.Val;
+                        max = val;
                         bestMoves.Add(bm);
                     }
-                    else if (bm.Val.StrategicValue == max.StrategicValue)
+                    else if (val.StrategicValue == max.StrategicValue)
                         bestMoves.Add(bm);
 
                     if (bestMoves.Count > 0)

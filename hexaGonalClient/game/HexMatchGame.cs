@@ -339,20 +339,20 @@ namespace hexaGoNal.game
 
             int max = 1;
             foreach (BotMove mov in moves)
-                if (mov.Val.StrategicValue > max)
+                if (mov.ValueOfSubtree(bot.Player).StrategicValue > max)
                     max = mov.Val.StrategicValue;
 
-            foreach (BotMove c in moves)
+            foreach (BotMove mov in moves)
             {
                 Dot d = new(tmp, dotDiameter);
                 d.Shape.Opacity = 0.3;
-                Vector v = CoordsToScreen(c.Position);
+                Vector v = CoordsToScreen(mov.Position);
                 Canvas.SetLeft(d.Shape, v.X - dotDiameter / 2);
                 Canvas.SetTop(d.Shape, v.Y - dotDiameter / 2);
                 offCan.Children.Add(d.Shape);
-                d.Shape.ToolTip = "Score: " + c.Val;
+                d.Shape.ToolTip = "Score: " + mov.ValueOfSubtree(bot.Player);
                 d.Shape.Fill = new SolidColorBrush(Util.ModColBrightness(
-                    Color.FromRgb(0x11, 0x11, 0x11), (double)c.Val.StrategicValue / (double)max));
+                    Color.FromRgb(0x11, 0x11, 0x11), (double)mov.ValueOfSubtree(bot.Player).StrategicValue / (double)max));
                 debugRemove.Add(d);
             }
         }
