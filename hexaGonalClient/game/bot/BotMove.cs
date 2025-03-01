@@ -1,11 +1,11 @@
-﻿using hexaGoNal;
+﻿using hexaGonalClient.game.util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace hexaGonalClient.game.util
+namespace hexaGonalClient.game.bot
 {
     class BotMove
     {

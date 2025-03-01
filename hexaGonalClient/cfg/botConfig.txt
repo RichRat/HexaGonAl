@@ -24,7 +24,7 @@ x 1 1 1 1
 
 #defend check
 $s = 90000
-$v = 10
+$v = 0
 x 2 2 2 2
 2 x 2 2 2
 2 2 x 2 2
@@ -38,7 +38,7 @@ $v = 80000
 
 # defend against enemy checkmates
 $s = 10000
-$v = 20
+$v = 0
 x 2 2 2 0
 0 2 2 x 2 0
 
@@ -63,7 +63,7 @@ x 0 0 1
 
 # defend - block opportunities
 $s = 8
-$v = 5
+$v = 0
 2 x 2
 x 2 2
 $s = 5
@@ -81,13 +81,28 @@ x 1
 x 0 2
 x 0 1
 
-
-$s = 0
-$v = 10
+# defend against enemy traps using multiple rows
+$s = 90
+$v = 0
 !combo
-0x110
-01x10
-!and
-0x110
-01x10
-!end
+0 2 x 2 0
+0 x 2 2 0
+1 x x 2 2 0
+1 2 x 2 2 0
+1 2 2 x 2 0
+1 2 2 2 x 0
+0 2 2 0 x 0
+!endcombo
+
+# reinforce triggering traps
+$s = 200
+$v = 200
+!combo
+0 1 x 1 0
+0 x 1 1 0
+2 x x 1 1 0
+2 1 x 1 1 0
+2 1 1 x 1 0
+2 1 1 1 x 0
+0 1 1 0 x 0
+!endcombo

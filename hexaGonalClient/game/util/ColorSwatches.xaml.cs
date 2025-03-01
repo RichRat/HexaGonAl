@@ -77,7 +77,7 @@ namespace hexaGonalClient.game.util
 
             anim = new(this);
             Opacity = 0;
-            anim.RegisterAnimation(AnimationStyle.EaseOut, 700, (o, x) => Opacity = x);
+            anim.RegisterAnimation(700, (o, x) => Opacity = x, AnimationStyle.EaseOut);
         }
 
         private void Rect_MouseDown(object sender, MouseButtonEventArgs e)
@@ -105,7 +105,7 @@ namespace hexaGonalClient.game.util
 
         private void DelayResponse(Action a)
         {
-            Animation an = anim.RegisterAnimation(AnimationStyle.EaseIn, 350, (_, x) => Opacity = (1 - x));
+            Animation an = anim.RegisterAnimation(350, (_, x) => Opacity = (1 - x), AnimationStyle.EaseIn);
             an.AnimationFinished = a;
         }
     }

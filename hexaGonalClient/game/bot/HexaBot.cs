@@ -1,9 +1,10 @@
-﻿using hexaGoNal;
+﻿using hexaGonalClient.game.bot;
 using hexaGonalClient.game.util;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -12,6 +13,7 @@ namespace hexaGonalClient.game
 {
     partial class HexaBot
     {
+        private static readonly int BOT_EASY_BAG = 5;
 
         // posibilities for the bot
         private Dictionary<Coords, BotVal> cloud = new();
@@ -20,6 +22,7 @@ namespace hexaGonalClient.game
         private Coords lastEnemyPoint = null;
         private Random rand = new();
         private List<BotLutEntry> scoreLookup = new();
+        private List<BotLutEntry> comboLookup = new();
 
         public Player Player { get; set; }
         public Player Opponent { get; set; }
@@ -31,27 +34,20 @@ namespace hexaGonalClient.game
 
         // directions ordered for clockwise movement
         private static readonly Coords[] CCWdirections = {
-            new Coords(-1, 1),
-            new Coords(-1, 0),
-            new Coords(0, -1),
-            new Coords(1, -1),
-            new Coords(1, 0),
-            new Coords(0, 1)
+            new(-1, 1),
+            new(-1, 0),
+            new(0, -1),
+            new(1, -1),
+            new(1, 0),
+            new(0, 1)
         };
 
         private static readonly Coords[] directionAxis =
         {
-            new Coords(1, 0),
-            new Coords(0, 1),
-            new Coords(-1, 1)
+            new(1, 0),
+            new(0, 1),
+            new(-1, 1)
         };
-
-        public enum Difficulties
-        {
-            Easy = 1,
-            Hard = 4,
-            VeryHard = 8
-        }
 
         public Difficulties Difficulty { get; set; }
 
@@ -96,17 +92,17 @@ namespace hexaGonalClient.game
             
             Coords ret = null;
 
-            if (Difficulty == Difficulties.Hard)
+            if (Difficulty < Difficulties.VeryHard)
             {
                 ScoreMoves(Player);
-                List<Coords> bestMoves = GetBestMoves();
+                List<Coords> bestMoves = Difficulty > Difficulties.Easy ? GetBestMoves() : GetMovesEasy();
 
                 if (bestMoves.Count > 0)
                     ret = bestMoves[rand.Next(0, bestMoves.Count)];
             }
             else if (Difficulty == Difficulties.VeryHard)
             {
-                BotMove root = new BotMove(null, null);
+                BotMove root = new(null, null);
                 GenMoveTree(root, Player, Opponent);
                 List<BotMove> bestMoves = new();
                 BotVal max = new();
@@ -172,6 +168,17 @@ namespace hexaGonalClient.game
             return bestMoves;
         }
 
+        private List<Coords> GetMovesEasy()
+        {
+            // moves above 10k are forced since it might make the bot too easy if it forgets to defend at all.
+            if (cloud.Max(kvp => kvp.Value.Score) > 10000) 
+                return GetBestMoves();
+
+            var moves = cloud.ToList();
+            moves.Sort((a, b) => b.Value.Score.CompareTo(a.Value.Score)); // sort desc
+            return (from m in moves.Take(BOT_EASY_BAG) select m.Key).ToList();
+        }
+
         private List<Coords> GetTopMoves(int n)
         {
             List<Coords> topMoves = new();
@@ -188,14 +195,22 @@ namespace hexaGonalClient.game
             int[] buffer = new int[checkDiam];
             foreach (Coords point in cloud.Keys)
             {
-                BotVal pointScore = new BotVal();
+                BotVal pointScore = new();
+                int[] comboHit = new int[comboLookup.Count];
                 for (int i = 0; i < directionAxis.Length; i++)
-                    pointScore += ScoreRow(GetRow(buffer, p, point, i));
+                    pointScore += ScoreRow(GetRow(buffer, p, point, i), comboHit);
+                
+                for (int i = 0; i < comboHit.Length; i++)
+                {
+                    if (comboHit[i] > 1)
+                    {
+                        Console.WriteLine("combo hit!");
+                        pointScore += comboLookup.ElementAt(i).Value;
+                    }
+                }
 
                 cloud[point] = pointScore;
             }
-            
-
         }
 
         private int[] GetRow(int[] buffer, Player p, Coords point, int direction)
@@ -249,49 +264,31 @@ namespace hexaGonalClient.game
             return cloud;
         }
 
-        private BotVal ScoreRow(int[] row)
+        private BotVal ScoreRow(int[] row, int[] comboHit)
         {
             BotVal score = new();
             bool combo = false;
-            int comboIndex = 0;
-            int[] comboHit = new int[10];
+            int comboId = -1;
+
+
             foreach (BotLutEntry bl in scoreLookup)
             {
+                // idk why i am checking for positive here
                 if (score.IsPositive() && bl.IsBreak)
                     break;
 
                 if (bl.IsComboStart)
                 {
                     combo = true;
-                    comboHit = new int[10];
-                    comboIndex = 0;
+                    comboId = bl.ComboIndex;
                 }
-
-                if (bl.isComboAND)
-                    comboIndex++;
-
-                // score combo on end tag which contains the score for the combination
-                if (bl.isComboEND)
-                {
+                else if (bl.IsComboEND)
                     combo = false;
-                    bool v = true;
-                    for (int i = comboIndex; i >= 0; i--)
-                        if (comboHit[i] <= 0)
-                            v = false;
-
-                    if (v)
-                        score += bl.Value;
-
-                    continue;
-                }
-
+                
                 if (!combo)
                     score += bl.Check(row);
-                else
-                {
-                    if (bl.Check(row).IsPositive())
-                        comboHit[comboIndex]++;
-                }
+                else if (bl.IsMatch(row) && Difficulty > Difficulties.Normal)
+                    comboHit[comboId]++;
             }
 
             return score;
@@ -311,6 +308,7 @@ namespace hexaGonalClient.game
 
             int score = 0;
             int stratValue = 0; //TODO introduce startegic value to botlutentry
+            int comboId = 0;
             foreach (string _line in Properties.Resources.botConfig.Split('\n'))
             {
                 if (string.IsNullOrEmpty(_line) || _line.Length < 2 || !reg.IsMatch(_line))
@@ -318,6 +316,7 @@ namespace hexaGonalClient.game
 
                 string line = _line.Trim();
 
+                BotLutEntry ble = null;
                 char s = line[0];
                 switch (s)
                 {
@@ -334,17 +333,29 @@ namespace hexaGonalClient.game
 
                         break;
                     case '!':
-                        BotLutEntry ble = new(line);
+                        ble = new(line);
                         if (line.Contains("!end"))
                             ble.Value = new(score, stratValue);
 
                         scoreLookup.Add(ble);
+
+                        if (ble.IsComboStart)
+                        {
+                            ble.ComboIndex = comboId;
+                            ble.Value = new BotVal(score, stratValue);
+                            comboLookup.Add(ble);
+                            comboId++;
+                        }
+
+                        if (ble.IsComboEND || ble.IsComboStart)
+                            Console.WriteLine(line);
+
                         break;
                     case '0':
                     case '1':
                     case '2':
                     case 'x':
-                        BotLutEntry ble = new(line, score, stratValue);
+                        ble = new(line, score, stratValue);
                         Console.WriteLine(ble);
                         scoreLookup.Add(ble);
                         BotLutEntry bleMir = ble.Mirror();
@@ -358,6 +369,7 @@ namespace hexaGonalClient.game
                         break;
                 }
             }
+
         }
 
         private void InitRowCoords()

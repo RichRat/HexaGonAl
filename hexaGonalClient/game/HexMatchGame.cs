@@ -11,6 +11,7 @@ using static hexaGoNal.Dot;
 using static hexaGonalClient.game.Animator;
 using hexaGonalClient;
 using System.Windows.Media.Effects;
+using hexaGonalClient.game.bot;
 using hexaGonalClient.game.util;
 
 namespace hexaGoNal.game
@@ -28,9 +29,11 @@ namespace hexaGoNal.game
         private readonly ScreenScroller scroller;
         private bool isDrag = false;
 
-        // preview 
-        private Coords prevCoords;
-        private Dot prevDot;
+        
+        // preview coordinates
+        private Coords previewCoords;
+        // preview dot
+        private Dot previewDot;
         // highlight last placed dot
         private Dot lastPlacedDot = null;
 
@@ -114,15 +117,10 @@ namespace hexaGoNal.game
         }
 
         /// <summary>
-        /// start game with previous settings
-        /// </summary>
-        public void StartGame() => StartGame(new List<Player>(players));
-
-        /// <summary>
         /// start game with given players
         /// </summary>
         /// <param name="players">list of players</param>
-        public void StartGame(List<Player> pl)
+        public void StartGame(List<Player> players, Difficulties diff)
         {
             if (state != GameState.Initialized)
                 return;
@@ -133,8 +131,8 @@ namespace hexaGoNal.game
             scroller.Offset = new Vector();
             scroller.SetOffset();
 
-            players.Clear();
-            players.AddRange(pl);
+            this.players.Clear();
+            this.players.AddRange(players);
 
             playerIndex = 0;
             PlayerChanged?.Invoke(this, ActivePlayer);
@@ -143,13 +141,15 @@ namespace hexaGoNal.game
             state = GameState.Turn;
             dots.Clear();
             AnimatePlayerTurn(ActivePlayer);
-            prevDot = null;
+            previewDot = null;
 
-            if (players[1].Name.ToLower().StartsWith("bot"))
+            if (diff > 0)
             {
                 P2Bot = true;
-                bot.Player = pl[1];
-                bot.Opponent = pl[0];
+                bot.Player = players[1];
+                bot.Opponent = players[0];
+                bot.Difficulty = diff;
+                Console.WriteLine("diff " + diff);
             }
         }
 
@@ -211,7 +211,7 @@ namespace hexaGoNal.game
                 double dist = (pos - CoordsToScreen(candidates[i])).Length;
 
                 //give the previous coords a bit of an advantage to avoid it feeling nervous
-                if (candidates[i] == prevCoords)
+                if (candidates[i] == previewCoords)
                     dist *= 0.8;
 
                 if (dist < minDist)
@@ -233,26 +233,26 @@ namespace hexaGoNal.game
 
             if (state == GameState.Turn)
             {
-                if (prevDot == null)
+                if (previewDot == null)
                 {
-                    prevDot = new Dot(ActivePlayer, dotDiameter);
-                    prevDot.State = DotState.Preview;
-                    offCan.Children.Add(prevDot.Shape);
+                    previewDot = new Dot(ActivePlayer, dotDiameter);
+                    previewDot.State = DotState.Preview;
+                    offCan.Children.Add(previewDot.Shape);
                 }
 
-                Coords lastPrevCoords = prevCoords;
-                prevCoords = ScreenToCoords((Vector)e.GetPosition(offCan));
-                if (prevCoords != lastPrevCoords)
+                Coords lastPrevCoords = previewCoords;
+                previewCoords = ScreenToCoords((Vector)e.GetPosition(offCan));
+                if (previewCoords != lastPrevCoords)
                 {
-                    Vector dotOffset = CoordsToScreen(prevCoords);
-                    SetLeft(prevDot.Shape, dotOffset.X - dotDiameter / 2);
-                    SetTop(prevDot.Shape, dotOffset.Y - dotDiameter / 2);
+                    Vector dotOffset = CoordsToScreen(previewCoords);
+                    SetLeft(previewDot.Shape, dotOffset.X - dotDiameter / 2);
+                    SetTop(previewDot.Shape, dotOffset.Y - dotDiameter / 2);
                 }
 
-                if (dots.ContainsKey(prevCoords))
-                    prevDot.Shape.Visibility = Visibility.Hidden;
-                else if (prevDot.Shape.Visibility == Visibility.Hidden)
-                    prevDot.Shape.Visibility = Visibility.Visible;
+                if (dots.ContainsKey(previewCoords))
+                    previewDot.Shape.Visibility = Visibility.Hidden;
+                else if (previewDot.Shape.Visibility == Visibility.Hidden)
+                    previewDot.Shape.Visibility = Visibility.Visible;
             }
         }
 
@@ -270,7 +270,7 @@ namespace hexaGoNal.game
                 return;
             }
 
-            if (state == GameState.Turn && e.ChangedButton == MouseButton.Left && !dots.ContainsKey(prevCoords))
+            if (state == GameState.Turn && e.ChangedButton == MouseButton.Left && !dots.ContainsKey(previewCoords))
             {
                 PlaceDot();
             }
@@ -278,19 +278,19 @@ namespace hexaGoNal.game
 
         private void PlaceDot()
         {
-            dots.Add(prevCoords, prevDot);
-            prevDot.State = DotState.LastPlaced;
-            AnimatePlaceDot(prevDot, prevCoords);
+            dots.Add(previewCoords, previewDot);
+            previewDot.State = DotState.LastPlaced;
+            AnimatePlaceDot(previewDot, previewCoords);
             if (lastPlacedDot != null)
                 lastPlacedDot.State = DotState.Default;
 
-            lastPlacedDot = prevDot;
-            prevDot = null;
+            lastPlacedDot = previewDot;
+            previewDot = null;
 
             if (P2Bot)
-                bot.AddCoord(prevCoords, ActivePlayer);
+                bot.AddCoord(previewCoords, ActivePlayer);
 
-            List<Coords> winRow = CheckWin(prevCoords, ActivePlayer);
+            List<Coords> winRow = CheckWin(previewCoords, ActivePlayer);
             if (winRow.Count > 4)
             {
                 foreach (Coords c in winRow)
@@ -366,7 +366,7 @@ namespace hexaGoNal.game
             offCan.Children.Insert(0, disc);
 
             double maxSize = dotDiameter * 3;
-            Animation anim = animator.RegisterAnimation(disc, AnimationStyle.EaseInOut, 500, (k, x) =>
+            Animation anim = animator.RegisterAnimation(500, (k, x) =>
             {
                 double diam = dotDiameter + dotDiameter * 2 * x;
                 disc.Height = diam;
@@ -374,7 +374,7 @@ namespace hexaGoNal.game
                 SetLeft(disc, pos.X - disc.Width / 2);
                 SetTop(disc, pos.Y - disc.Height / 2);
                 disc.Opacity = 1 - x;
-            });
+            }, disc, AnimationStyle.EaseInOut);
             anim.AnimationFinished = () => offCan.Children.Remove(disc);
         }
 
@@ -393,7 +393,7 @@ namespace hexaGoNal.game
             winText.EnableScreen(winPlayer, players);
             offCan.Children.Add(winText);
 
-            animator.RegisterAnimation(AnimationStyle.EaseIn, 1500, (k, x) => winText.Opacity = x);
+            animator.RegisterAnimation(1500, (k, x) => winText.Opacity = x, AnimationStyle.EaseIn);
             
             Vector textPos = winPos + new Vector(-winText.ActualWidth / 2, 50);
             winText.DisplWidthOffset = winText.ActualWidth > 1;
@@ -401,11 +401,11 @@ namespace hexaGoNal.game
             SetTop(winText, textPos.Y);
 
             IEnumerable<Dot> nonWinList = from v in dots where !v.Value.IsWinDot() select v.Value;
-            animator.RegisterAnimation(AnimationStyle.EaseInOut, 1200, (_, x) =>
+            animator.RegisterAnimation(1200, (_, x) =>
             {
                 foreach (Dot d in nonWinList)
                     d.Shape.Opacity = (1 + 1 - x) / 2;
-            });
+            }, AnimationStyle.EaseInOut);
         }
 
         private void AnimatePlayerTurn(Player p)
@@ -428,19 +428,19 @@ namespace hexaGoNal.game
             Children.Add(text);
             SetLeft(text, 0);
             SetTop(text, -300);
-            animator.RegisterAnimation(AnimationStyle.EaseOut, 500, (_, x) =>
+            animator.RegisterAnimation(500, (_, x) =>
             {
                 SetTop(text, (-text.ActualHeight - 16) * (1 - x));
-            });
+            }, AnimationStyle.EaseOut);
 
-            animator.RegisterAnimation(AnimationStyle.EaseOut, 2500, (_, x) =>
+            animator.RegisterAnimation(2500, (_, x) =>
             {
                 if (x > 3 / 4)
                 {
                     x = (x - 0.5) * 4;
                     text.Opacity = 1 - x;
                 }
-            }).AnimationFinished = () => Children.Remove(text);
+            }, AnimationStyle.EaseOut).AnimationFinished = () => Children.Remove(text);
         }
 
         private void OnMouseUp(object sender, MouseButtonEventArgs e)
@@ -518,16 +518,16 @@ namespace hexaGoNal.game
             {
                 state = GameState.WaitingForTurn;
                 //TODO async calculate bot turn
-                prevCoords = bot.CalcTurn();
-                prevDot = new Dot(bot.Player, dotDiameter);
+                previewCoords = bot.CalcTurn();
+                previewDot = new Dot(bot.Player, dotDiameter);
 #if DEBUG
-                if (bot.getCloud().ContainsKey(prevCoords))
-                    prevDot.Shape.ToolTip = "Score: " + bot.getCloud()[prevCoords];
+                if (bot.getCloud().ContainsKey(previewCoords))
+                    previewDot.Shape.ToolTip = "Score: " + bot.getCloud()[previewCoords];
 #endif
-                Vector dotOffset = CoordsToScreen(prevCoords);
-                SetLeft(prevDot.Shape, dotOffset.X - dotDiameter / 2);
-                SetTop(prevDot.Shape, dotOffset.Y - dotDiameter / 2);
-                offCan.Children.Add(prevDot.Shape);
+                Vector dotOffset = CoordsToScreen(previewCoords);
+                SetLeft(previewDot.Shape, dotOffset.X - dotDiameter / 2);
+                SetTop(previewDot.Shape, dotOffset.Y - dotDiameter / 2);
+                offCan.Children.Add(previewDot.Shape);
                 PlaceDot();
             }
         }

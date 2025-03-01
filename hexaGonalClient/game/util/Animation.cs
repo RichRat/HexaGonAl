@@ -10,8 +10,9 @@ namespace hexaGonalClient.game
         public long TargetTime;
         public Action<object, double> Action;
         public AnimationStyle Style;
+        private bool finEvoked = false;
 
-        public Animation(long duration, Action<object, double> action, AnimationStyle style)
+        public Animation(long duration, Action<object, double> action, AnimationStyle style = AnimationStyle.EaseInOut)
         {
             TargetTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() + duration;
             Duration = duration;
@@ -33,8 +34,11 @@ namespace hexaGonalClient.game
 
         internal void OnFinished(Dispatcher disp)
         {
-            if (AnimationFinished != null)
+            if (AnimationFinished != null && !finEvoked)
+            {
+                finEvoked = true;
                 disp.Invoke(AnimationFinished);
+            }
         }
     }
 }

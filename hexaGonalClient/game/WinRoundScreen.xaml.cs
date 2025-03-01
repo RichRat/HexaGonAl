@@ -1,4 +1,4 @@
-﻿using hexaGoNal;
+﻿using hexaGonalClient.game.util;
 using System;
 using System.Collections.Generic;
 using System.Linq;

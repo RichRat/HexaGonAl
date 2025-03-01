@@ -5,19 +5,19 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media;
 
-namespace hexaGoNal
+namespace hexaGonalClient.game.util
 {
     public class Player
     {
 
-        public Player(Color col, String name)
+        public Player(Color col, string name)
         {
             Color = col;
             Name = name;
             Score = 0;
         }
 
-        public String Name { get; set; }
+        public string Name { get; set; }
 
         public Color Color { get; set; }
 

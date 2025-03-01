@@ -4,8 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Windows.Media.TextFormatting;
 
-namespace hexaGonalClient.game.util
+namespace hexaGonalClient.game.bot
 {
     class BotLutEntry
     {
@@ -16,21 +17,34 @@ namespace hexaGonalClient.game.util
         private int[] pattern;
         public BotVal Value { get; set; }
         private int offset;
-
+        public int ComboIndex { get; set; }
         public bool IsBreak { get; }
 
         public bool IsComboStart { get; set; }
-        public bool isComboAND { get; set; }
-        public bool isComboEND { get; set; }
+        public bool IsComboEND { get; set; }
+
+        public enum ComboType
+        {
+            Defensive = 0
+        }
 
         public BotLutEntry(string flag = "")
         {
+            string flag_val = null;
+            int delim = flag.IndexOf(' ');
+
+            if (delim > 0)
+            {
+                string tmp = flag.Substring(0, delim);
+                flag_val = flag.Substring(delim + 1);
+                flag = tmp;
+            }
+
             switch (flag)
             {
                 case "!break": IsBreak = true; break;
                 case "!combo": IsComboStart = true; break;
-                case "!and": isComboAND = true; break;
-                case "!end": isComboEND = true; break;
+                case "!endcombo": IsComboEND = true; break;
 
                 default:
                     break;
@@ -41,7 +55,7 @@ namespace hexaGonalClient.game.util
         {
             Value = new(score, stratValue);
             IsBreak = false;
-            
+
             if (input == null)
                 return;
 
@@ -61,35 +75,31 @@ namespace hexaGonalClient.game.util
             }
         }
 
-        //TODO check function which returns a score if matching
-
         public override string ToString()
         {
             if (IsBreak)
                 return "!break";
             else if (IsComboStart)
                 return "!combo";
-            else if (isComboAND)
-                return "!AND";
-            else if (isComboEND)
-                return "!END";
+            else if (IsComboEND)
+                return "!endcombo";
 
-            String ret = "";
+            string ret = "";
             foreach (int b in pattern)
                 ret += b + " ";
 
             return ret + " " + Value;
-                
+
         }
 
         public BotVal Check(int[] check)
         {
-            return IsMatch(check) ? Value : new();
+            return IsMatch(check) ? Value : BotVal.ZERO;
         }
 
         public bool IsMatch(int[] check)
         {
-            if (IsBreak)
+            if (IsBreak || IsComboStart || IsComboEND)
                 return false;
 
             for (int i = 0; i < pattern.Length; i++)
@@ -103,7 +113,7 @@ namespace hexaGonalClient.game.util
 
         public BotLutEntry Mirror()
         {
-            if (IsBreak || IsComboStart || isComboAND || isComboEND)
+            if (IsBreak || IsComboStart || IsComboEND)
                 return this;
 
             BotLutEntry bl = new();

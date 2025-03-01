@@ -4,13 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace hexaGonalClient.game.util
+namespace hexaGonalClient.game.bot
 {
     /// <summary>
     /// Two dimension integer class used for bot lookup tabl
     /// </summary>
     class BotVal
     {
+
+        public static BotVal ZERO = new();
         /// <summary>
         /// urgency score
         /// </summary>

@@ -15,14 +15,8 @@ namespace hexaGonalClient.game
         private readonly ConcurrentDictionary<Object, Animation> animators = new();
         private readonly FrameworkElement elem;
         private readonly Random rnd = new();
-
-        public enum AnimationStyle
-        {
-            Linear,
-            EaseIn,
-            EaseOut,
-            EaseInOut
-        }
+        
+        private long int_key = 0;
 
         public Animator(FrameworkElement elem)
         {
@@ -67,25 +61,20 @@ namespace hexaGonalClient.game
 
             if (remFlag)
             {
-                KeyValuePair<object, Animation>[] remArr = animators.Where(kvp => kvp.Value.IsDone()).ToArray();
-                foreach (KeyValuePair<object, Animation> item in remArr)
+                foreach (KeyValuePair<object, Animation> item in animators.Where(kvp => kvp.Value.IsDone()))
                 {
-                    item.Value.OnFinished(elem.Dispatcher);
+                    item.Value.OnFinished(elem.Dispatcher);                        
                     RemoveAnimatee(item.Key);
                 }
             }
         }
 
-        public void RetigstAnimation(object key, long millis, Action<Object, double> animate) 
-            => RegisterAnimation(key, AnimationStyle.Linear, millis, animate);
-
-
-        public Animation RegisterAnimation(AnimationStyle style, long millis, Action<Object, double> animate)
+        public Animation RegisterAnimation(long millis, Action<Object, double> animate, AnimationStyle style = AnimationStyle.EaseInOut)
         {
-            return RegisterAnimation(rnd.Next(int.MaxValue), style, millis, animate);
+            return RegisterAnimation(millis, animate, int_key++, style);
         }
 
-        public Animation RegisterAnimation(object key, AnimationStyle style, long millis, Action<Object, double> animate)
+        public Animation RegisterAnimation(long millis, Action<Object, double> animate, object key, AnimationStyle style = AnimationStyle.EaseInOut)
         {
             Animation anim = new(millis, animate, style);
             bool r = animators.TryAdd(key, anim);
@@ -111,6 +100,7 @@ namespace hexaGonalClient.game
         {
             if (key == null)
                 return;
+
             animators.Remove(key, out _);
             if (animators.IsEmpty && timer.Enabled)
                 timer.Enabled = false;

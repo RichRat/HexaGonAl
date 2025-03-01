@@ -1,5 +1,4 @@
-﻿using hexaGoNal;
-using hexaGonalClient.game.util;
+﻿using hexaGonalClient.game.util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,14 +27,15 @@ namespace hexaGonalClient.game
         private bool inpP1init = true;
         private bool inpP2init = true;
         private readonly Animator anim;
+        private Difficulties Difficulty {  get; set; }
 
-        public event EventHandler<List<Player>> StartGame;
+        public event EventHandler<(List<Player>, Difficulties)> StartGame;
 
         public GameSetupScreen()
         {
             InitializeComponent();
             anim = new(this);
-            anim.RegisterAnimation(Animator.AnimationStyle.EaseIn, 300, (_, x) => Opacity = x);
+            anim.RegisterAnimation(300, (_, x) => Opacity = x, AnimationStyle.EaseIn);
 
             p1.Color = Util.ColFromStr(Properties.Settings.Default.Player1Color);
             p1.Name = Properties.Settings.Default.Player1Name;
@@ -46,6 +46,11 @@ namespace hexaGonalClient.game
             p2.Name = Properties.Settings.Default.Player2Name;
             inpPlayer2.Text = p2.Name;
             SetCol(p2, colPlayer2, inpPlayer2);
+
+            Difficulty = (Difficulties)Properties.Settings.Default.difficulty;
+            inpDifficulty.ItemsSource = Enum.GetValues(typeof(Difficulties));
+            inpDifficulty.SelectedItem = Difficulty;
+            
         }
 
         private void colPlayer1_MouseDown(object sender, MouseButtonEventArgs e)
@@ -129,8 +134,29 @@ namespace hexaGonalClient.game
             Properties.Settings.Default.Player2Color = Util.StrFromColor(p2.Color);
             Properties.Settings.Default.Save();
 
-            Animation an = anim.RegisterAnimation(Animator.AnimationStyle.EaseIn, 300, (_, x) => Opacity = (1 - x));
-            an.AnimationFinished = () => StartGame.Invoke(this, new() { p1, p2 });
+            Animation an = anim.RegisterAnimation(300, (_, x) => Opacity = (1 - x), AnimationStyle.EaseIn);
+            an.AnimationFinished = 
+                () => {
+                    StartGame.Invoke(this, (new() { p1, p2 }, Difficulty));
+                };
+        }
+
+        private void inpDifficulty_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (inpDifficulty.SelectedItem is Difficulties diff)
+            {
+                Difficulty = diff;
+                if (diff != Difficulty)
+                    Properties.Settings.Default.difficulty = (int)diff;
+
+                if (diff > Difficulties.HotSeat)
+                {
+                    inpPlayer2.Text = "Bot " + diff;
+                    inpPlayer2.IsEnabled = false;
+                }
+                else
+                    inpPlayer2.IsEnabled = true;
+            }
         }
     }
 }

@@ -14,6 +14,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using hexaGoNal.game;
 using hexaGonalClient.game;
+using hexaGonalClient.game.util;
 
 namespace hexaGoNal
 {
@@ -23,26 +24,33 @@ namespace hexaGoNal
     public partial class MainWindow : Window
     {
         private HexMatchGame game;
+        private Animator anim;
+        private GameSetupScreen gss;
 
         public MainWindow()
         {
+            anim = new(this);
             InitializeComponent();
+            GameSetup();
+        }
 
-            GameSetupScreen gss = new();
+        private void GameSetup()
+        {
+            gss = new();
             Grid.SetRow(gss, 2);
             gss.StartGame += StartGame;
             grMain.Children.Add(gss);
-
         }
 
-        private void StartGame(object sender, List<Player> p)
+        private void StartGame(object sender, (List<Player>, Difficulties) touple)
         {
+            (List<Player> p, Difficulties d) = touple;
             game = new();
             Grid.SetRow(game, 2);
             grMain.Children.Add(game);
             game.PlayerChanged += OnPlayerChanged;
             game.RoundWon += OnRoundWon;
-            game.StartGame(p);
+            game.StartGame(p, d);
         }
 
         private void OnRoundWon(object sender, Player p)
@@ -64,7 +72,16 @@ namespace hexaGoNal
 
         private void btnReset_Click(object sender, RoutedEventArgs e)
         {
-            game?.StartGame();
+            var a = anim.RegisterAnimation(250, (_, x) => game.Opacity = 1 - x, AnimationStyle.EaseIn);
+            a.AnimationFinished = () =>
+            {
+                grMain.Children.Remove(game);
+                game = null;
+                RectSpacer.Fill = (SolidColorBrush)new BrushConverter().ConvertFrom("#444");
+                spScore.Children.Clear();
+            };
+
+            anim.RegisterAnimation(250, (_, x) => gss.Opacity = x, AnimationStyle.EaseIn);
         }
     }
 }

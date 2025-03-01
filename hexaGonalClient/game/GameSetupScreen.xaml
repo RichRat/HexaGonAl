@@ -14,18 +14,23 @@
                 <ColumnDefinition Width="220"></ColumnDefinition>
                 <ColumnDefinition></ColumnDefinition>
                 <ColumnDefinition Width="180"></ColumnDefinition>
+                <ColumnDefinition Width="Auto" ></ColumnDefinition>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="130"></RowDefinition>
-                <RowDefinition Height="130"></RowDefinition>
+                <RowDefinition Height="100"></RowDefinition>
+                <RowDefinition Height="100"></RowDefinition>
+                <RowDefinition Height="100"></RowDefinition>
             </Grid.RowDefinitions>
 
-            <TextBlock Text="Player 1 Name:" Grid.Row="0" Grid.Column="0" Foreground="White" TextAlignment="Right" FontSize="25" FontWeight="Bold" Margin="10" VerticalAlignment="Center"></TextBlock>
-            <TextBlock Text="Player 2 Name:" Grid.Row="1" Grid.Column="0" Foreground="White" TextAlignment="Right" FontSize="25" FontWeight="Bold" Margin="10" VerticalAlignment="Center"></TextBlock>
+            <TextBlock Text="Player 1 Name" Grid.Row="0" Grid.Column="0" Foreground="White" TextAlignment="Right" FontSize="25" FontWeight="Bold" Margin="10" VerticalAlignment="Center"></TextBlock>
+            <TextBlock Text="Player 2 Name" Grid.Row="1" Grid.Column="0" Foreground="White" TextAlignment="Right" FontSize="25" FontWeight="Bold" Margin="10" VerticalAlignment="Center"></TextBlock>
             <TextBox Name="inpPlayer1" Grid.Row="0" Grid.Column="1" Margin="5" GotFocus="inpPlayer1_GotFocus" TextChanged="inpPlayer1_TextChanged" Height="38" FontSize="23" Background="#444444" Foreground="LightGray" BorderBrush="Orange" BorderThickness="3" Padding="1">Player 1</TextBox>
             <TextBox Name="inpPlayer2" Grid.Row="1" Grid.Column="1" Margin="5" GotFocus="inpPlayer2_GotFocus" TextChanged="inpPlayer2_TextChanged" Height="38" FontSize="23" Background="#444444" Foreground="LightGray" BorderBrush="Cyan" BorderThickness="3" Padding="1">Player 2</TextBox>
             <Rectangle Name="colPlayer1" Grid.Row="0" Grid.Column="2" Margin="15" Fill="Orange" MouseDown="colPlayer1_MouseDown" Height="38"></Rectangle>
-            <Rectangle Name="colPlayer2" Grid.Row="12" Grid.Column="2" Margin="15" Fill="Cyan" MouseDown="colPlayer2_MouseDown" Height="38"></Rectangle>
+            <Rectangle Name="colPlayer2" Grid.Row="1" Grid.Column="2" Margin="15" Fill="Cyan" MouseDown="colPlayer2_MouseDown" Height="38"></Rectangle>
+            <TextBlock Text="Bot Level" Grid.Row="2" Grid.Column="0" Foreground="White" TextAlignment="Right" FontSize="25" FontWeight="Bold" Margin="10" VerticalAlignment="Center"></TextBlock>
+            <ComboBox Name="inpDifficulty" Grid.Row="2" Grid.Column="1" SelectionChanged="inpDifficulty_SelectionChanged" Margin="5" Height="38" FontSize="23" BorderThickness="3" Padding="3"></ComboBox>
+
         </Grid>
         <Button Name="btnStartGame" Height="42px" Width="168" FontSize="24" FontWeight="Bold" Background="#444444" Foreground="White" Click="btnStartGame_Click">Start Game</Button>
     </StackPanel>

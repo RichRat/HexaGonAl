@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace hexaGonalClient.game
+namespace hexaGonalClient.game.util
 {
     public class Coords
     {

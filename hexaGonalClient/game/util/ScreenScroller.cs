@@ -9,7 +9,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
-namespace hexaGonalClient.game
+namespace hexaGonalClient.game.util
 {
     class ScreenScroller
     {
@@ -18,7 +18,7 @@ namespace hexaGonalClient.game
         private Vector offset;
         private Animator animator;
 
-        
+
         private Point? prevMousePos;
         private List<Vector> dragVels = new();
         private List<Stopwatch> dragVelTimes = new();
@@ -33,7 +33,7 @@ namespace hexaGonalClient.game
 
         public void SetOffset() => SetOffset(null, null);
 
-        public void SetOffset(Object sender, EventArgs e)
+        public void SetOffset(object sender, EventArgs e)
         {
             Canvas.SetLeft(canv, offset.X + game.ActualWidth / 2);
             Canvas.SetTop(canv, offset.Y + game.ActualHeight / 2);
@@ -72,7 +72,7 @@ namespace hexaGonalClient.game
 
             postDragDir *= 1000d / 60d * 10000d / (sw.ElapsedTicks + 1);
             if (postDragDir.Length > 0.01)
-                animator.RegisterAnimation("after drag", Animator.AnimationStyle.EaseOut, 250, PostAnimateDrag);
+                animator.RegisterAnimation(250, PostAnimateDrag, "after drag", AnimationStyle.EaseOut);
         }
         private void PostAnimateDrag(object key, double x)
         {
@@ -98,10 +98,11 @@ namespace hexaGonalClient.game
         {
             animator.UnregisterAnimation("animate scroll");
             Vector startOffset = offset;
-            return animator.RegisterAnimation("animate scroll", Animator.AnimationStyle.EaseInOut, durationMs, (k, x) => {
+            return animator.RegisterAnimation(durationMs, (k, x) =>
+            {
                 offset = x * scrollTarget + (1 - x) * startOffset;
                 SetOffset();
-            });
+            }, "animate scroll", AnimationStyle.EaseInOut);
         }
     }
 }
