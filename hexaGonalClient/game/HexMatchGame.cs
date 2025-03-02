@@ -13,6 +13,7 @@ using hexaGonalClient;
 using System.Windows.Media.Effects;
 using hexaGonalClient.game.bot;
 using hexaGonalClient.game.util;
+using System.Xml;
 
 namespace hexaGoNal.game
 {
@@ -64,20 +65,20 @@ namespace hexaGoNal.game
 
         // coords for all possible directions
         private static readonly Coords[] neighboursCoords = {
-            new Coords(1, 0),
-            new Coords(-1, 0),
-            new Coords(1, -1),
-            new Coords(0, -1),
-            new Coords(-1, 1),
-            new Coords(0, -1)
+            new(1, 0),
+            new(-1, 0),
+            new(1, -1),
+            new(0, -1),
+            new(-1, 1),
+            new(0, -1)
         };
 
         // coord directions for every possible axis
         private static readonly Coords[] directionCoords =
         {
-            new Coords(1, 0),
-            new Coords(0, 1),
-            new Coords(-1, 1)
+            new(1, 0),
+            new(0, 1),
+            new(-1, 1)
         };
 
         public Player ActivePlayer 
@@ -95,25 +96,34 @@ namespace hexaGoNal.game
 
             ClipToBounds = true;
             Background = new SolidColorBrush(Color.FromRgb(0x11, 0x11, 0x11));
-            SizeChanged += scroller.SetOffset;
+            SizeChanged += scroller.OnSizeChanged;
             MouseDown += OnMouseDown;
             MouseUp += OnMouseUp;
             MouseLeave += OnMouseLeave;
             MouseMove += OnMouseMove;
-            MouseWheel += OnMouseWheel;
+            MouseWheel += scroller.OnZoomChange;
+            
 
             scroller.SetOffset();
         }
 
-        private void OnMouseWheel(object sender, MouseWheelEventArgs e)
+        public void OnKeyDown(object sender, KeyEventArgs e)
         {
+
+            switch (e.Key)
+            {
 #if DEBUG
-            if (state == GameState.Turn)
-                state = GameState.WaitingForTurn;
-            else
-                state = GameState.Turn;
+                case Key.Divide:
+                    // debug feature to check bot cloud scores
+                    if (state == GameState.Turn)
+                        state = GameState.WaitingForTurn;
+                    else
+                        state = GameState.Turn;
+                    break;
 #endif
-            //TODO https://stackoverflow.com/questions/33185482/how-to-programmatically-change-the-scale-of-a-canvas
+                default:
+                    break;
+            }
         }
 
         /// <summary>
@@ -329,10 +339,8 @@ namespace hexaGoNal.game
 
             debugRemove.Clear();
             Player tmp = new(Colors.Gray, "debug");
-            int max = 1;
-            foreach (var c in bot.getCloud())
-                if (c.Value.Score > max)
-                    max = c.Value.Score;
+            int max = bot.getCloud().Max(o => o.Value.Score);
+
 
             foreach (KeyValuePair<Coords, BotVal> c in bot.getCloud())
             {

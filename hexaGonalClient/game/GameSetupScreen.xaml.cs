@@ -145,9 +145,8 @@ namespace hexaGonalClient.game
         {
             if (inpDifficulty.SelectedItem is Difficulties diff)
             {
+                Properties.Settings.Default.difficulty = (int)diff;
                 Difficulty = diff;
-                if (diff != Difficulty)
-                    Properties.Settings.Default.difficulty = (int)diff;
 
                 if (diff > Difficulties.HotSeat)
                 {
@@ -155,7 +154,10 @@ namespace hexaGonalClient.game
                     inpPlayer2.IsEnabled = false;
                 }
                 else
+                {
+                    inpPlayer2.Text = "Player 2";
                     inpPlayer2.IsEnabled = true;
+                }
             }
         }
     }

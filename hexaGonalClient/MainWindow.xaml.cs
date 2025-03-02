@@ -50,6 +50,7 @@ namespace hexaGoNal
             grMain.Children.Add(game);
             game.PlayerChanged += OnPlayerChanged;
             game.RoundWon += OnRoundWon;
+            KeyDown += game.OnKeyDown;
             game.StartGame(p, d);
         }
 
@@ -72,6 +73,9 @@ namespace hexaGoNal
 
         private void btnReset_Click(object sender, RoutedEventArgs e)
         {
+            if (game == null)
+                return;
+
             var a = anim.RegisterAnimation(250, (_, x) => game.Opacity = 1 - x, AnimationStyle.EaseIn);
             a.AnimationFinished = () =>
             {
