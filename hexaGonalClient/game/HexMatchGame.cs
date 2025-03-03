@@ -176,7 +176,7 @@ namespace hexaGoNal.game
             playerIndex = (playerIndex + 1) % players.Count;
             PlayerChanged?.Invoke(this, ActivePlayer);
             AnimatePlayerTurn(ActivePlayer);
-            double scrollUpBy = -Math.Max(wrs.ActualHeight + this.ActualHeight / 3, bottomDotY + dotSpacing);
+            double scrollUpBy = -Math.Max(wrs.GetScrollHeight(), bottomDotY + dotSpacing);
             double wrsPosY = GetTop(wrs);
             animator.RegisterAnimation(1200, (_, x) => SetTop(wrs, wrsPosY + x * scrollUpBy), AnimationStyle.EaseIn)
                 .AnimationFinished = () => this.Children.Remove(wrs);

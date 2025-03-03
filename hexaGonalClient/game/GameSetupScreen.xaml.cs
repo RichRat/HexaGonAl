@@ -50,7 +50,6 @@ namespace hexaGonalClient.game
             Difficulty = (Difficulties)Properties.Settings.Default.difficulty;
             inpDifficulty.ItemsSource = Enum.GetValues(typeof(Difficulties));
             inpDifficulty.SelectedItem = Difficulty;
-            
         }
 
         private void colPlayer1_MouseDown(object sender, MouseButtonEventArgs e)
@@ -127,18 +126,14 @@ namespace hexaGonalClient.game
             if (StartGame == null)
                 return;
 
-
             Properties.Settings.Default.Player1Name = p1.Name;
             Properties.Settings.Default.Player1Color = Util.StrFromColor(p1.Color);
             Properties.Settings.Default.Player2Name = p2.Name;
             Properties.Settings.Default.Player2Color = Util.StrFromColor(p2.Color);
             Properties.Settings.Default.Save();
 
-            Animation an = anim.RegisterAnimation(300, (_, x) => Opacity = (1 - x), AnimationStyle.EaseIn);
-            an.AnimationFinished = 
-                () => {
-                    StartGame.Invoke(this, (new() { p1, p2 }, Difficulty));
-                };
+            anim.RegisterAnimation(300, (_, x) => Opacity = (1 - x), AnimationStyle.EaseIn)
+                .AnimationFinished = () => StartGame.Invoke(this, (new() { p1, p2 }, Difficulty));
         }
 
         private void inpDifficulty_SelectionChanged(object sender, SelectionChangedEventArgs e)

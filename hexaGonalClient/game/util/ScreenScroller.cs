@@ -23,7 +23,8 @@ namespace hexaGonalClient.game.util
         private Animator animator;
         private double zoom = 1;
         private double winZoom = 0;
-        private Vector? initSize = null;
+        // dimensions of the canvas on a clean start
+        private Vector? initSize = new Vector(884, 530);
 
         public double Zoom
         {
@@ -63,17 +64,10 @@ namespace hexaGonalClient.game.util
         public void OnSizeChanged(object sender, EventArgs e)
         {
             SetOffset();
-
-            
-            if (initSize != null)
-            {
-                double sfx = game.ActualWidth / initSize.Value.X;
-                double sfy = game.ActualHeight / initSize.Value.Y;
-                winZoom = Math.Min(sfx, sfy) - 1;
-                SetZoom();
-            }
-            else if (game.ActualHeight > 0)
-                this.initSize = new Vector(game.ActualWidth, game.ActualHeight);
+            double sfx = game.ActualWidth / initSize.Value.X;
+            double sfy = game.ActualHeight / initSize.Value.Y;
+            winZoom = Math.Min(sfx, sfy) - 1;
+            SetZoom();
         }
 
         public void OnDrag(object sender, MouseEventArgs e)
