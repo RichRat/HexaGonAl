@@ -76,6 +76,8 @@ namespace hexaGoNal
             if (game == null)
                 return;
 
+            gss.ResetScore();
+
             var a = anim.RegisterAnimation(250, (_, x) => game.Opacity = 1 - x, AnimationStyle.EaseIn);
             a.AnimationFinished = () =>
             {

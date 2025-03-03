@@ -155,5 +155,11 @@ namespace hexaGonalClient.game
                 }
             }
         }
+
+        public void ResetScore()
+        {
+            p1.Score = 0;
+            p2.Score = 0;
+        }
     }
 }
