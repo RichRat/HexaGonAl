@@ -17,6 +17,7 @@ namespace hexaGoNal
         private readonly Ellipse shape = new Ellipse();
         private Player player;
         private Action undoState;
+        private Brush fillBrush;
 
         public enum DotState
         {
@@ -32,11 +33,27 @@ namespace hexaGoNal
         public Dot(Player p, double diam)
         {
             player = p;
-            shape.Fill = player.Brush;
+            
             shape.Height = diam;
             shape.Width = diam;
 
             prevState = state;
+
+            fillBrush = new RadialGradientBrush
+            {
+                GradientOrigin = new System.Windows.Point(.5, .1),
+                Center = new System.Windows.Point(.5, 0),
+                RadiusX = 1,
+                RadiusY = 1,
+                GradientStops =
+                {
+                    new GradientStop(Util.ModColBrightness(player.Color, 0.5), 0),
+                    new GradientStop(player.Color, .5),
+                    new GradientStop(Util.ModColBrightness(player.Color, -0.5), 1)
+                }
+            };
+
+            shape.Fill = fillBrush;
         }
 
 
@@ -56,7 +73,7 @@ namespace hexaGoNal
                     shape.StrokeThickness = 4;
                     undoState = () =>
                     {
-                        shape.Fill = player.Brush;
+                        shape.Fill = fillBrush;
                         shape.StrokeThickness = 0;
                     };
                     break;

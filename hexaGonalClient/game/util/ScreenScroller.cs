@@ -22,8 +22,25 @@ namespace hexaGonalClient.game.util
         private Vector offset;
         private Animator animator;
         private double zoom = 1;
+        private double winZoom = 0;
         private Vector? initSize = null;
 
+        public double Zoom
+        {
+            get => zoom;
+            set 
+            {
+                if (Math.Abs(zoom - value) > 0.01)
+                {
+                    zoom = value;
+                    SetZoom();
+                }
+            }
+        }
+
+        public double WinScale { get => winZoom; }
+
+        public double Scale { get => winZoom + zoom; }
 
         private Point? prevMousePos;
         private List<Vector> dragVels = new();
@@ -52,11 +69,10 @@ namespace hexaGonalClient.game.util
             {
                 double sfx = game.ActualWidth / initSize.Value.X;
                 double sfy = game.ActualHeight / initSize.Value.Y;
-                zoom *= Math.Min(sfx, sfy);
+                winZoom = Math.Min(sfx, sfy) - 1;
                 SetZoom();
             }
-
-            if (game.ActualHeight > 0)
+            else if (game.ActualHeight > 0)
                 this.initSize = new Vector(game.ActualWidth, game.ActualHeight);
         }
 
@@ -115,7 +131,7 @@ namespace hexaGonalClient.game.util
             set => offset = value;
         }
 
-        internal Animation AnimateScroll(Vector scrollTarget, int durationMs)
+        internal Animation AnimateScroll(int durationMs, Vector scrollTarget, AnimationStyle style = AnimationStyle.EaseInOut)
         {
             animator.UnregisterAnimation("animate scroll");
             Vector startOffset = offset;
@@ -123,26 +139,27 @@ namespace hexaGonalClient.game.util
             {
                 offset = x * scrollTarget + (1 - x) * startOffset;
                 SetOffset();
-            }, "animate scroll", AnimationStyle.EaseInOut);
+            }, "animate scroll", style);
         }
 
         //example https://stackoverflow.com/questions/33185482/how-to-programmatically-change-the-scale-of-a-canvas
         public void OnZoomChange(object sender, MouseWheelEventArgs e)
         {
-            double factor = zoom + (double)e.Delta / (120 * 4);
-            if (factor < 1)
-                factor = 1;
-
-            zoom = factor;
+            zoom += (double)e.Delta / (120 * 4); ;
             SetZoom();
         }
 
         private void SetZoom()
         {
-            if (zoom < 1)
-                zoom = 1;
+            double zf = zoom + winZoom;
+            if (zf < 1)
+            {
+                zf = 1;
+                zoom = 1 - winZoom;
+            }
+            
 
-            canv.LayoutTransform = new ScaleTransform(zoom, zoom);
+            canv.LayoutTransform = new ScaleTransform(zf, zf);
             canv.UpdateLayout();
         }
     }

@@ -1,11 +1,13 @@
 ﻿using hexaGonalClient.game.util;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -21,23 +23,41 @@ namespace hexaGonalClient
     /// </summary>
     public partial class WinRoundScreen : UserControl
     {
-        public WinRoundScreen()
+        private Canvas parent;
+        private double zoom = 1;
+
+        public WinRoundScreen(Canvas parent)
         {
             InitializeComponent();
-            SizeChanged += WinRoundScreen_SizeChanged;
+            parent.SizeChanged += WinRoundScreen_SizeChanged;
+            this.parent = parent;
         }
 
-        private void WinRoundScreen_SizeChanged(object sender, SizeChangedEventArgs e)
+        public void InnitPos()
         {
-            if (DisplWidthOffset)
-                return;
-
-            double left = Canvas.GetLeft(this);
-            Canvas.SetLeft(this, left - ActualWidth / 2);
-            DisplWidthOffset = true;
+            Canvas.SetLeft(this, (parent.ActualWidth - ActualWidth * zoom) / 2);
+            Canvas.SetTop(this, parent.ActualHeight / 3);
         }
 
-        public bool DisplWidthOffset { get; set; }
+        public void SetZoom(double zoom)
+        {
+            this.zoom = zoom;
+            LayoutTransform = new ScaleTransform(zoom, zoom);
+            UpdateLayout();
+        }
+
+        public double GetScrollHeight()
+        {
+            return ActualHeight * zoom + parent.ActualHeight / 3;
+        }
+
+        void WinRoundScreen_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (e.WidthChanged)
+            {
+                Canvas.SetLeft(this, (e.NewSize.Width - ActualWidth * zoom) / 2);
+            }
+        }
 
         public void EnableScreen(Player winPlayer, List<Player> pll)
         {

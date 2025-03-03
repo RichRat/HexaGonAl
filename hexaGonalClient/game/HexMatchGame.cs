@@ -14,6 +14,8 @@ using System.Windows.Media.Effects;
 using hexaGonalClient.game.bot;
 using hexaGonalClient.game.util;
 using System.Xml;
+using System.Net.WebSockets;
+using System.Runtime.InteropServices.Swift;
 
 namespace hexaGoNal.game
 {
@@ -30,6 +32,7 @@ namespace hexaGoNal.game
         private readonly ScreenScroller scroller;
         private bool isDrag = false;
 
+        private WinRoundScreen wrs;
         
         // preview coordinates
         private Coords previewCoords;
@@ -43,6 +46,8 @@ namespace hexaGoNal.game
         private static readonly double yAchisRad = Math.PI / 3;
         private Vector xAxsis = new(1, 0);
         private Vector yAxsis = new(Math.Cos(yAchisRad), Math.Sin(yAchisRad));
+
+        private double winRoundZoom = 1;
 
         private readonly Animator animator;
         public event EventHandler<Player> PlayerChanged;
@@ -166,11 +171,17 @@ namespace hexaGoNal.game
         private void NextRound()
         {
             state = GameState.RoundTransitionAnimation;
-            double bottomDotY = dots.Keys.Select(CoordsToScreen).Select(v => v.Y).Max();
+            double bottomDotY = dots.Keys.Select(CoordsToScreen).Max(v => v.Y);
+            // TODO get the y value of the bottom of the game end screen since sometimes the animation doesn't fully go off screen.
             playerIndex = (playerIndex + 1) % players.Count;
             PlayerChanged?.Invoke(this, ActivePlayer);
             AnimatePlayerTurn(ActivePlayer);
-            scroller.AnimateScroll(new Vector(scroller.Offset.X, -(bottomDotY + ActualHeight + dotSpacing)), 1200)
+            double scrollUpBy = -Math.Max(wrs.ActualHeight + this.ActualHeight / 3, bottomDotY + dotSpacing);
+            double wrsPosY = GetTop(wrs);
+            animator.RegisterAnimation(1200, (_, x) => SetTop(wrs, wrsPosY + x * scrollUpBy), AnimationStyle.EaseIn)
+                .AnimationFinished = () => this.Children.Remove(wrs);
+
+            scroller.AnimateScroll(1200, new Vector(scroller.Offset.X, scroller.Offset.Y + scrollUpBy), AnimationStyle.EaseIn)
                 .AnimationFinished = () =>
                 {
                     state = GameState.Turn;
@@ -367,7 +378,7 @@ namespace hexaGoNal.game
             {
                 Height = dot.Shape.Height,
                 Width = dot.Shape.Width,
-                Fill = new SolidColorBrush(Util.ModColBrightness(dot.Player.Color, 0.8)),
+                Fill = new SolidColorBrush(Util.ModColBrightness(dot.Player.Color, 0.7)),
                 Opacity = 0
             };
 
@@ -394,19 +405,16 @@ namespace hexaGoNal.game
                 winPos += v;
 
             winPos /= winRow.Count;
-            scroller.AnimateScroll(-winPos - new Vector(0, ActualHeight / 4), 1200);
+            scroller.AnimateScroll(1200, -winPos * scroller.Scale - new Vector(0, ActualHeight / 4));
 
-            WinRoundScreen winText = new();
-            winText.Opacity = 0;
-            winText.EnableScreen(winPlayer, players);
-            offCan.Children.Add(winText);
-
-            animator.RegisterAnimation(1500, (k, x) => winText.Opacity = x, AnimationStyle.EaseIn);
-            
-            Vector textPos = winPos + new Vector(-winText.ActualWidth / 2, 50);
-            winText.DisplWidthOffset = winText.ActualWidth > 1;
-            SetLeft(winText, textPos.X);
-            SetTop(winText, textPos.Y);
+            wrs = new(this);
+            wrs.Opacity = 0;
+            wrs.EnableScreen(winPlayer, players);
+            wrs.Opacity = 0;
+            this.Children.Add(wrs);
+            wrs.SetZoom(scroller.WinScale + 1);
+            wrs.InnitPos();
+            animator.RegisterAnimation(1500, (k, x) => wrs.Opacity = x, AnimationStyle.EaseIn);
 
             IEnumerable<Dot> nonWinList = from v in dots where !v.Value.IsWinDot() select v.Value;
             animator.RegisterAnimation(1200, (_, x) =>
