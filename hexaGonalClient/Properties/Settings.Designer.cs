@@ -94,5 +94,29 @@ namespace hexaGonalClient.Properties {
                 this["difficulty"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int gameLen {
+            get {
+                return ((int)(this["gameLen"]));
+            }
+            set {
+                this["gameLen"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("21")]
+        public int maxGameLen {
+            get {
+                return ((int)(this["maxGameLen"]));
+            }
+            set {
+                this["maxGameLen"] = value;
+            }
+        }
     }
 }

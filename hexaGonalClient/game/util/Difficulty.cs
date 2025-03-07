@@ -1,6 +1,6 @@
 ﻿namespace hexaGonalClient.game
 {
-    public enum Difficulties
+    public enum Difficulty
     {
         HotSeat = 0,
         Easy = 30,

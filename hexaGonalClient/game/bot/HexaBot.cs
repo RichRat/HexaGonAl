@@ -19,13 +19,12 @@ namespace hexaGonalClient.game
         private Dictionary<Coords, BotVal> cloud = new();
         // currently placed dots
         private Dictionary<Coords, Player> points = new();
-        private Coords lastEnemyPoint = null;
+        //private Coords lastEnemyPoint = null;
         private Random rand = new();
         private List<BotLutEntry> scoreLookup = new();
         private List<BotLutEntry> comboLookup = new();
 
         public Player Player { get; set; }
-        public Player Opponent { get; set; }
 
         private static readonly int pCloudRadius = 3;
         private static readonly int checkRadius = 4;
@@ -49,7 +48,8 @@ namespace hexaGonalClient.game
             new(-1, 1)
         };
 
-        public Difficulties Difficulty { get; set; }
+        public Difficulty Difficulty { get; set; }
+        public List<Player> Players { get; internal set; }
 
         private readonly Coords[,] rowDefinition = new Coords[directionAxis.Length, checkDiam]; 
 
@@ -58,14 +58,13 @@ namespace hexaGonalClient.game
         {
             InitRowCoords();
             LoadLut();
-            Difficulty = Difficulties.Hard;
+            Difficulty = Difficulty.Hard;
         }
 
         public void Clear()
         {
             cloud.Clear();
             points.Clear();
-            lastEnemyPoint = null;
         }
 
         public void AddCoord(Coords c, Player p)
@@ -76,34 +75,34 @@ namespace hexaGonalClient.game
 
             //add new posibilities for the new coord
             GeneratePointCloud(c, pCloudRadius);
-
-            if (p != Player)
-                lastEnemyPoint = c;
         }
 
-        public Coords CalcTurn()
+        public Coords CalcTurn(Player activePlayer)
         {
-            Stopwatch sw = new();
-            sw.Start();
+            Player = activePlayer;
+            Difficulty = activePlayer.Difficulty;
+
             //if bot has first move just place at 0 0
-            if (lastEnemyPoint == null)
+            if (points.Count == 0)
                 return new Coords(0, 0);
 
-            
+            Stopwatch sw = new();
+            sw.Start();
+
             Coords ret = null;
 
-            if (Difficulty < Difficulties.VeryHard)
+            if (Difficulty < Difficulty.VeryHard)
             {
                 ScoreMoves(Player);
-                List<Coords> bestMoves = Difficulty > Difficulties.Easy ? GetBestMoves() : GetMovesEasy();
+                List<Coords> bestMoves = Difficulty > Difficulty.Easy ? GetBestMoves() : GetMovesEasy();
 
                 if (bestMoves.Count > 0)
                     ret = bestMoves[rand.Next(0, bestMoves.Count)];
             }
-            else if (Difficulty == Difficulties.VeryHard)
+            else if (Difficulty == Difficulty.VeryHard)
             {
                 BotMove root = new(null, null);
-                GenMoveTree(root, Player, Opponent);
+                GenMoveTree(root, Player);
                 List<BotMove> bestMoves = new();
                 BotVal max = new();
                 foreach (BotMove bm in root.Children)
@@ -128,7 +127,7 @@ namespace hexaGonalClient.game
 
         int moveTreeDepth = 1;
 
-        private void GenMoveTree(BotMove bm, Player p, Player op, int depth = 0)
+        private void GenMoveTree(BotMove bm, Player p, int depth = 0)
         {
             ScoreMoves(Player);
             foreach (Coords cMov in GetTopMoves(5))
@@ -140,7 +139,7 @@ namespace hexaGonalClient.game
                 List<Coords> addCloud = GeneratePointCloud(cMov, pCloudRadius);
 
                 if (depth < moveTreeDepth)
-                    GenMoveTree(move, op, p, depth + 1);
+                    GenMoveTree(move, p, depth + 1);
 
                 points.Remove(cMov);
                 cloud.Add(cMov, new());
@@ -287,7 +286,7 @@ namespace hexaGonalClient.game
                 
                 if (!combo)
                     score += bl.Check(row);
-                else if (bl.IsMatch(row) && Difficulty > Difficulties.Normal)
+                else if (bl.IsMatch(row) && Difficulty > Difficulty.Normal)
                     comboHit[comboId]++;
             }
 

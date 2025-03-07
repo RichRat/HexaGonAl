@@ -21,7 +21,11 @@ namespace hexaGonalClient.game.util
 
         public Color Color { get; set; }
 
-        public int Score { get; set; }
+        public int Score { get; set; } = 0;
+
+        public bool IsBot { get => Difficulty > 0; }
+
+        public Difficulty Difficulty { get; set; } = Difficulty.HotSeat;
 
         public override string ToString()
         {

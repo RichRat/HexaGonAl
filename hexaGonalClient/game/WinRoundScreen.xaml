@@ -26,7 +26,15 @@
             <TextBlock Name="txtPlayer2Status" Grid.Column="2" Text="456" Foreground="White" FontSize="50" HorizontalAlignment="Left" VerticalAlignment="Center" FontWeight="ExtraBold"></TextBlock>
         </Grid>
         <Rectangle Height="2px" Fill="White"></Rectangle>
-        <TextBlock Text="Continue: press Left Mouse Button" Foreground="White" HorizontalAlignment="Center" FontSize="15" Margin="0 15px" FontStyle="Italic"></TextBlock>
+        <TextBlock Name="textEndRound" Text="Continue: press Left Mouse Button" Foreground="White" HorizontalAlignment="Center" FontSize="15" Margin="0 15px" FontStyle="Italic"></TextBlock>
+        <Grid Name="gridEndGame" Visibility="Hidden">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition></ColumnDefinition>
+                <ColumnDefinition></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <Button Name="BtnRestart" Grid.Column="0" Width="220" Height="38" Margin="5" FontSize="22" FontWeight="Bold" Background="#111" Foreground="White" Click="BtnRestart_Click">Play Again</Button>
+            <Button Name="BtnSettings" Grid.Column="1" Width="220" Height="38" Margin="5" FontSize="22" FontWeight="Bold" Background="#111" Foreground="White" Click="BtnSettings_Click">Setttings</Button>
+        </Grid>
         
 
     </StackPanel>

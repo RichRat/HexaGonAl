@@ -1,7 +1,10 @@
-﻿using hexaGonalClient.game.util;
+﻿using hexaGoNal.game;
+using hexaGonalClient.game.util;
 using System;
 using System.Collections.Generic;
+using System.DirectoryServices.ActiveDirectory;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -27,9 +30,10 @@ namespace hexaGonalClient.game
         private bool inpP1init = true;
         private bool inpP2init = true;
         private readonly Animator anim;
-        private Difficulties Difficulty {  get; set; }
+        public int GameLength { get; set; } = -1;
 
-        public event EventHandler<(List<Player>, Difficulties)> StartGame;
+        public event EventHandler<List<Player>> StartGame;
+
 
         public GameSetupScreen()
         {
@@ -41,15 +45,25 @@ namespace hexaGonalClient.game
             p1.Name = Properties.Settings.Default.Player1Name;
             inpPlayer1.Text = p1.Name;
             SetCol(p1, colPlayer1, inpPlayer1);
-            
+
             p2.Color = Util.ColFromStr(Properties.Settings.Default.Player2Color);
             p2.Name = Properties.Settings.Default.Player2Name;
             inpPlayer2.Text = p2.Name;
             SetCol(p2, colPlayer2, inpPlayer2);
 
-            Difficulty = (Difficulties)Properties.Settings.Default.difficulty;
-            inpDifficulty.ItemsSource = Enum.GetValues(typeof(Difficulties));
-            inpDifficulty.SelectedItem = Difficulty;
+            p2.Difficulty = (Difficulty)Properties.Settings.Default.difficulty;
+            if (p2.IsBot)
+                inpPlayer2.IsEnabled = false;
+
+            inpDifficulty.ReadEnumContent(Difficulty.Easy);
+            inpDifficulty.SeletedItem = (int)p2.Difficulty;
+            inpDifficulty.SelectedChanged += inpDifficulty_SelectedChanged;
+
+            GameLength = Properties.Settings.Default.gameLen;
+            inpGameLength.SelectedChanged += inpGameLength_SelectedChanged;
+            for (int i = 0; i < Properties.Settings.Default.maxGameLen; i++)
+                if (i == 0 || i % 2 == 1)
+                    inpGameLength.AddItem(i, i > 0 ? i.ToString() : "inf");
         }
 
         private void colPlayer1_MouseDown(object sender, MouseButtonEventArgs e)
@@ -130,20 +144,20 @@ namespace hexaGonalClient.game
             Properties.Settings.Default.Player1Color = Util.StrFromColor(p1.Color);
             Properties.Settings.Default.Player2Name = p2.Name;
             Properties.Settings.Default.Player2Color = Util.StrFromColor(p2.Color);
+            Properties.Settings.Default.gameLen = GameLength;
+            Properties.Settings.Default.difficulty = (int)p2.Difficulty;
             Properties.Settings.Default.Save();
 
             anim.RegisterAnimation(300, (_, x) => Opacity = (1 - x), AnimationStyle.EaseIn)
-                .AnimationFinished = () => StartGame.Invoke(this, (new() { p1, p2 }, Difficulty));
+                .AnimationFinished = () => StartGame?.Invoke(this, new List<Player> { p1, p2 });
         }
 
-        private void inpDifficulty_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void inpDifficulty_SelectedChanged(object sender, object e)
         {
-            if (inpDifficulty.SelectedItem is Difficulties diff)
+            if (e is Difficulty diff)
             {
-                Properties.Settings.Default.difficulty = (int)diff;
-                Difficulty = diff;
-
-                if (diff > Difficulties.HotSeat)
+                p2.Difficulty = diff;
+                if (diff > Difficulty.HotSeat)
                 {
                     inpPlayer2.Text = "Bot " + diff;
                     inpPlayer2.IsEnabled = false;
@@ -160,6 +174,12 @@ namespace hexaGonalClient.game
         {
             p1.Score = 0;
             p2.Score = 0;
+        }
+
+        private void inpGameLength_SelectedChanged(object sender, object o)
+        {
+            GameLength = inpGameLength.SeletedItem;
+            
         }
     }
 }
