@@ -47,15 +47,16 @@ namespace hexaGoNal.game
         private Vector xAxsis = new(1, 0);
         private Vector yAxsis = new(Math.Cos(yAchisRad), Math.Sin(yAchisRad));
 
-        private double winRoundZoom = 1;
-
         private readonly Animator animator;
         public event EventHandler<Player> PlayerChanged;
         public event EventHandler<Player> RoundWon;
+        public event EventHandler Exit;
+        public event EventHandler Reset;
 
         private HexaBot bot = new();
 
-        public bool P2Bot { get; set; }
+        public bool BotEnabled { get; set; } = false;
+        public int GameLength { get; set; } = 0;
 
         public enum GameState
         {
@@ -135,7 +136,7 @@ namespace hexaGoNal.game
         /// start game with given players
         /// </summary>
         /// <param name="players">list of players</param>
-        public void StartGame(List<Player> players, Difficulties diff)
+        public void StartGame(List<Player> players)
         {
             if (state != GameState.Initialized)
                 return;
@@ -158,13 +159,14 @@ namespace hexaGoNal.game
             AnimatePlayerTurn(ActivePlayer);
             previewDot = null;
 
-            if (diff > 0)
+            var diffs = players.Select(p => p.Difficulty);
+            if (diffs.Where(d => d > 0).Any())
             {
-                P2Bot = true;
+                BotEnabled = true;
                 bot.Player = players[1];
-                bot.Opponent = players[0];
-                bot.Difficulty = diff;
-                Console.WriteLine("diff " + diff);
+                bot.Players = players;
+                bot.Difficulty = diffs.Max();
+                Console.WriteLine("diff " + bot.Difficulty);
             }
         }
 
@@ -172,7 +174,6 @@ namespace hexaGoNal.game
         {
             state = GameState.RoundTransitionAnimation;
             double bottomDotY = dots.Keys.Select(CoordsToScreen).Max(v => v.Y);
-            // TODO get the y value of the bottom of the game end screen since sometimes the animation doesn't fully go off screen.
             playerIndex = (playerIndex + 1) % players.Count;
             PlayerChanged?.Invoke(this, ActivePlayer);
             AnimatePlayerTurn(ActivePlayer);
@@ -299,6 +300,7 @@ namespace hexaGoNal.game
 
         private void PlaceDot()
         {
+            bool isFirst = dots.Count == 0;
             dots.Add(previewCoords, previewDot);
             previewDot.State = DotState.LastPlaced;
             AnimatePlaceDot(previewDot, previewCoords);
@@ -308,7 +310,7 @@ namespace hexaGoNal.game
             lastPlacedDot = previewDot;
             previewDot = null;
 
-            if (P2Bot)
+            if (BotEnabled)
                 bot.AddCoord(previewCoords, ActivePlayer);
 
             List<Coords> winRow = CheckWin(previewCoords, ActivePlayer);
@@ -322,23 +324,25 @@ namespace hexaGoNal.game
 
                 ActivePlayer.Score++;
                 Console.WriteLine("Winner: " + ActivePlayer.Name);
-                state = GameState.RoundTransition;
+                if (GameLength > 0 && players.Max(p => p.Score) >= GameLength / 2 + 1)
+                    state = GameState.GameFinished;
+                else
+                    state = GameState.RoundTransition;
+
                 RoundWon?.Invoke(this, ActivePlayer);
                 AnimateWin(winRow, ActivePlayer);
                 return;
             }
 
-            if (P2Bot && state == GameState.WaitingForTurn)
+            if (BotEnabled && state == GameState.WaitingForTurn)
                 state = GameState.Turn;
 
             playerIndex = (playerIndex + 1) % players.Count;
             PlayerChanged?.Invoke(this, ActivePlayer);
             AnimatePlayerTurn(ActivePlayer);
-            if (P2Bot)
-                BotMove();
+            BotMove();
 
-            //FIXME DEBUG remove code after test or at least make toggleable
-#if DEBUG
+#if DEBUG    
             DebugBotLogicDisplay();
 #endif
         }
@@ -409,11 +413,13 @@ namespace hexaGoNal.game
 
             wrs = new(this);
             wrs.Opacity = 0;
-            wrs.EnableScreen(winPlayer, players);
-            wrs.Opacity = 0;
+            wrs.EnableScreen(winPlayer, players, state == GameState.GameFinished);
             this.Children.Add(wrs);
             wrs.SetZoom(scroller.WinScale + 1);
             wrs.InnitPos();
+            if (state == GameState.GameFinished)
+                wrs.ButtonClick += OnGameFinished;
+
             animator.RegisterAnimation(1500, (k, x) => wrs.Opacity = x, AnimationStyle.EaseIn);
 
             IEnumerable<Dot> nonWinList = from v in dots where !v.Value.IsWinDot() select v.Value;
@@ -423,6 +429,22 @@ namespace hexaGoNal.game
                     d.Shape.Opacity = (1 + 1 - x) / 2;
             }, AnimationStyle.EaseInOut);
         }
+
+        private void OnGameFinished(object sender, WinRoundScreen.Response r)
+        {
+            if (r == WinRoundScreen.Response.Restart)
+            {
+                foreach (Player p in players)
+                    p.Score = 0;
+
+                Reset?.Invoke(this, EventArgs.Empty);
+                NextRound();
+            }
+            else
+                Exit?.Invoke(this, EventArgs.Empty);
+            
+        }
+
 
         private void AnimatePlayerTurn(Player p)
         {
@@ -526,26 +548,23 @@ namespace hexaGoNal.game
 
         private void BotMove()
         {
-            if (!P2Bot)
+            if (!ActivePlayer.IsBot)
                 return;
 
             //TODO dont immediately execute. Either dispatch or thread because otherwise player changed is called within the eventhandler.
-            if (ActivePlayer == bot.Player)
-            {
-                state = GameState.WaitingForTurn;
-                //TODO async calculate bot turn
-                previewCoords = bot.CalcTurn();
-                previewDot = new Dot(bot.Player, dotDiameter);
+            state = GameState.WaitingForTurn;
+            //TODO async calculate bot turn
+            previewCoords = bot.CalcTurn(ActivePlayer);
+            previewDot = new Dot(bot.Player, dotDiameter);
 #if DEBUG
-                if (bot.getCloud().ContainsKey(previewCoords))
-                    previewDot.Shape.ToolTip = "Score: " + bot.getCloud()[previewCoords];
+            if (bot.getCloud().ContainsKey(previewCoords))
+                previewDot.Shape.ToolTip = "Score: " + bot.getCloud()[previewCoords];
 #endif
-                Vector dotOffset = CoordsToScreen(previewCoords);
-                SetLeft(previewDot.Shape, dotOffset.X - dotDiameter / 2);
-                SetTop(previewDot.Shape, dotOffset.Y - dotDiameter / 2);
-                offCan.Children.Add(previewDot.Shape);
-                PlaceDot();
-            }
+            Vector dotOffset = CoordsToScreen(previewCoords);
+            SetLeft(previewDot.Shape, dotOffset.X - dotDiameter / 2);
+            SetTop(previewDot.Shape, dotOffset.Y - dotDiameter / 2);
+            offCan.Children.Add(previewDot.Shape);
+            PlaceDot();
         }
  
     }

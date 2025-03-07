@@ -56,7 +56,6 @@ namespace hexaGonalClient.game
                 };
 
                 elem.Dispatcher.Invoke(anim.Action, kvp.Key, animFactor);
-                
             }
 
             if (remFlag)

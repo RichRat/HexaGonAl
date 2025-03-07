@@ -39,6 +39,8 @@ namespace hexaGonalClient.game.util
             }
         }
 
+        public Vector ZoomOffset { get; set; }
+
         public double WinScale { get => winZoom; }
 
         public double Scale { get => winZoom + zoom; }
@@ -153,7 +155,7 @@ namespace hexaGonalClient.game.util
             }
             
 
-            canv.LayoutTransform = new ScaleTransform(zf, zf);
+            canv.LayoutTransform = new ScaleTransform(zf, zf, ZoomOffset.X, ZoomOffset.Y);
             canv.UpdateLayout();
         }
     }

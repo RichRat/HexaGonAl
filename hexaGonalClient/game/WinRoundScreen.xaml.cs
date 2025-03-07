@@ -26,6 +26,14 @@ namespace hexaGonalClient
         private Canvas parent;
         private double zoom = 1;
 
+        public enum Response
+        {
+            Restart = 0,
+            Settings = 1
+        }
+
+        public event EventHandler<Response> ButtonClick;
+
         public WinRoundScreen(Canvas parent)
         {
             InitializeComponent();
@@ -59,7 +67,7 @@ namespace hexaGonalClient
             }
         }
 
-        public void EnableScreen(Player winPlayer, List<Player> pll)
+        public void EnableScreen(Player winPlayer, List<Player> pll, bool isEndGame = false)
         {
             if (pll.Count < 2)
                 return;
@@ -84,12 +92,29 @@ namespace hexaGonalClient
             txtPlayer1Status.Text = pll[0].Score.ToString();
 
             txtPlayer2Status.Foreground = pll[1].Brush;
-            txtPlayer2Status.Text = pll[1].Score.ToString(); ;
+            txtPlayer2Status.Text = pll[1].Score.ToString();
+
+            if (isEndGame)
+            {
+                txtWinner.Text = winPlayer.Name + " Game Win";
+                textEndRound.Visibility = Visibility.Hidden;
+                gridEndGame.Visibility = Visibility.Visible;
+            }
         }
 
         public void DisableScreen()
         {
             Visibility = Visibility.Hidden;
+        }
+
+        private void BtnRestart_Click(object sender, RoutedEventArgs e)
+        {
+            ButtonClick?.Invoke(this, Response.Restart);
+        }
+
+        private void BtnSettings_Click(object sender, RoutedEventArgs e)
+        {
+            ButtonClick?.Invoke(this, Response.Settings);
         }
     }
 }

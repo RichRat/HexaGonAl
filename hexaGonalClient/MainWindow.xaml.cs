@@ -42,21 +42,22 @@ namespace hexaGoNal
             grMain.Children.Add(gss);
         }
 
-        private void StartGame(object sender, (List<Player>, Difficulties) touple)
+        private void StartGame(object sender, List<Player> p)
         {
-            (List<Player> p, Difficulties d) = touple;
             game = new();
             Grid.SetRow(game, 2);
+            game.GameLength = gss.GameLength;
             grMain.Children.Add(game);
             game.PlayerChanged += OnPlayerChanged;
             game.RoundWon += OnRoundWon;
+            game.Exit += (_, _) => btnReset_Click(null, null);
+            game.Reset += (_, _) => spScore.Children.Clear();
             KeyDown += game.OnKeyDown;
-            game.StartGame(p, d);
+            game.StartGame(p);
         }
 
         private void OnRoundWon(object sender, Player p)
         {
-            
             spScore.Children.Add(new Ellipse
             {
                 Height = 22,
