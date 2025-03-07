@@ -55,9 +55,12 @@ namespace hexaGonalClient.game
             if (p2.IsBot)
                 inpPlayer2.IsEnabled = false;
 
-            inpDifficulty.ReadEnumContent(Difficulty.Easy);
+            inpDifficulty.ReadEnumContent(Difficulty.Advanced);
             inpDifficulty.SeletedItem = (int)p2.Difficulty;
             inpDifficulty.SelectedChanged += inpDifficulty_SelectedChanged;
+
+            //TODO remove line when ai tree feature is working
+            inpDifficulty.RemoveItem((int)Difficulty.Master);
 
             GameLength = Properties.Settings.Default.gameLen;
             inpGameLength.SelectedChanged += inpGameLength_SelectedChanged;

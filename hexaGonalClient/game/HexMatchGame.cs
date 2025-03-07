@@ -7,7 +7,7 @@ using System.Windows.Shapes;
 using System.Windows.Media;
 using System.Windows.Input;
 using hexaGonalClient.game;
-using static hexaGoNal.Dot;
+using static hexaGonalClient.game.Dot;
 using static hexaGonalClient.game.Animator;
 using hexaGonalClient;
 using System.Windows.Media.Effects;
