@@ -26,19 +26,27 @@ namespace hexaGonalClient.game.util
         private static readonly Color[] cols =
         {
             Colors.White,
+            Colors.WhiteSmoke,
             Colors.LightGray,
+            Colors.IndianRed,
+            Colors.PaleVioletRed,
             Colors.Red,
+            Colors.OrangeRed,
             Colors.Orange,
+            Colors.Beige,
             Colors.Yellow,
             Colors.GreenYellow,
+            Colors.Chartreuse,
             Colors.Lime,
             Colors.SeaGreen,
             Colors.Aqua,
+            Colors.Cyan,
             Colors.LightBlue,
             Colors.MediumBlue,
             Colors.Fuchsia,
             Colors.Magenta,
-            Colors.BlueViolet
+            Colors.BlueViolet,
+            Colors.MediumVioletRed
         };
 
         public event EventHandler<Color> ColorSelected;
@@ -50,12 +58,12 @@ namespace hexaGonalClient.game.util
         {
             InitializeComponent();
 
-            this.Effect = new DropShadowEffect
-            {
-                ShadowDepth = 0,
-                Color = Colors.Black,
-                BlurRadius = 15
-            };
+            //this.Effect = new DropShadowEffect
+            //{
+            //    ShadowDepth = 0,
+            //    Color = Colors.Black,
+            //    BlurRadius = 15
+            //};
 
             foreach (Color c in cols)
             {
@@ -105,7 +113,7 @@ namespace hexaGonalClient.game.util
 
         private void DelayResponse(Action a)
         {
-            Animation an = anim.RegisterAnimation(350, (_, x) => Opacity = (1 - x), AnimationStyle.EaseIn);
+            Animation an = anim.RegisterAnimation(350, (_, x) => Opacity = (1 - x), AnimationStyle.EaseOut);
             an.AnimationFinished = a;
         }
     }

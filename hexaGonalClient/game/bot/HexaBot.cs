@@ -290,7 +290,7 @@ namespace hexaGonalClient.game
 
             foreach (BotLutEntry bl in scoreLookup)
             {
-                // idk why i am checking for positive here
+                // stops the loop if there was a match. Used to speed up very clear situations.
                 if (score.IsPositive() && bl.IsBreak)
                     break;
 
