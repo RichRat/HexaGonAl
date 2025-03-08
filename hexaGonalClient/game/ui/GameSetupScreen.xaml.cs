@@ -55,15 +55,18 @@ namespace hexaGonalClient.game
             if (p2.IsBot)
                 inpPlayer2.IsEnabled = false;
 
-            inpDifficulty.ReadEnumContent(Difficulty.Easy);
+            inpDifficulty.ReadEnumContent(Difficulty.Advanced);
             inpDifficulty.SeletedItem = (int)p2.Difficulty;
             inpDifficulty.SelectedChanged += inpDifficulty_SelectedChanged;
 
-            GameLength = Properties.Settings.Default.gameLen;
-            inpGameLength.SelectedChanged += inpGameLength_SelectedChanged;
+            //TODO remove line when ai tree feature is working
+            inpDifficulty.RemoveItem((int)Difficulty.Master);
+
             for (int i = 0; i < Properties.Settings.Default.maxGameLen; i++)
                 if (i == 0 || i % 2 == 1)
                     inpGameLength.AddItem(i, i > 0 ? i.ToString() : "inf");
+            
+            inpGameLength.SeletedItem = GameLength = Properties.Settings.Default.gameLen;
         }
 
         private void colPlayer1_MouseDown(object sender, MouseButtonEventArgs e)
@@ -85,15 +88,31 @@ namespace hexaGonalClient.game
             };
 
             Canvas.SetLeft(cs, ActualWidth / 6);
-            Canvas.SetTop(cs, 20);
+            Canvas.SetTop(cs, ActualHeight / 10);
 
+            Rectangle bg = new()
+            {
+                Fill = new SolidColorBrush(Colors.Black),
+                Opacity = 0.6,
+                Height = this.ActualHeight * 1.5,
+                Width = this.ActualWidth * 1.4
+            };
+
+            Binding b = new Binding
+            {
+                Source = cs,
+                Mode = BindingMode.OneWay,
+            };
+            BindingOperations.SetBinding(bg, Rectangle.OpacityProperty, b);
+
+            canvOverlay.Children.Add(bg);
             canvOverlay.Children.Add(cs);
-            cs.Aborted += (o, e) => canvOverlay.Children.Remove(cs);
+            cs.Aborted += (o, e) => canvOverlay.Children.Clear();
             cs.ColorSelected += (e, c) =>
             {
                 p.Color = c;
                 SetCol(p, rect, inp);
-                canvOverlay.Children.Remove(cs);
+                canvOverlay.Children.Clear();
             };
         }
 
@@ -144,12 +163,12 @@ namespace hexaGonalClient.game
             Properties.Settings.Default.Player1Color = Util.StrFromColor(p1.Color);
             Properties.Settings.Default.Player2Name = p2.Name;
             Properties.Settings.Default.Player2Color = Util.StrFromColor(p2.Color);
-            Properties.Settings.Default.gameLen = GameLength;
+            Properties.Settings.Default.gameLen = GameLength = inpGameLength.SeletedItem;
             Properties.Settings.Default.difficulty = (int)p2.Difficulty;
             Properties.Settings.Default.Save();
 
             anim.RegisterAnimation(300, (_, x) => Opacity = (1 - x), AnimationStyle.EaseIn)
-                .AnimationFinished = () => StartGame?.Invoke(this, new List<Player> { p1, p2 });
+                .AnimationFinished = () => StartGame?.Invoke(this, [p1, p2]);
         }
 
         private void inpDifficulty_SelectedChanged(object sender, object e)
@@ -174,12 +193,6 @@ namespace hexaGonalClient.game
         {
             p1.Score = 0;
             p2.Score = 0;
-        }
-
-        private void inpGameLength_SelectedChanged(object sender, object o)
-        {
-            GameLength = inpGameLength.SeletedItem;
-            
         }
     }
 }

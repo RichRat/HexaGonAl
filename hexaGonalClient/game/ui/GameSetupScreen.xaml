@@ -8,7 +8,7 @@
     mc:Ignorable="d" 
              d:DesignHeight="500" d:DesignWidth="800" MaxWidth="940">
     <StackPanel Orientation="Vertical">
-        <Canvas Name="canvOverlay" Panel.ZIndex="999" Height="1" Width="1" ClipToBounds="False" HorizontalAlignment="Left" Opacity="0.8"></Canvas>
+        <Canvas Name="canvOverlay" Panel.ZIndex="999" Height="1" Width="1" ClipToBounds="False" HorizontalAlignment="Left"></Canvas>
         <TextBlock x:Name="txtHeader" Text="Game Setup" FontSize="50" FontWeight="ExtraBold" TextAlignment="Center" Foreground="White"></TextBlock>
         <Grid Margin="30 30" Visibility="Visible">
             <Grid.ColumnDefinitions>

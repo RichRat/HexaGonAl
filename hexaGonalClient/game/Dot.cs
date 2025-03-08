@@ -7,10 +7,9 @@ using System.Windows.Shapes;
 using System.Windows.Media;
 using System.Windows.Controls;
 using System.Windows.Media.Effects;
-using hexaGonalClient.game;
 using hexaGonalClient.game.util;
 
-namespace hexaGoNal
+namespace hexaGonalClient.game
 {
     class Dot
     {
@@ -33,7 +32,7 @@ namespace hexaGoNal
         public Dot(Player p, double diam)
         {
             player = p;
-            
+
             shape.Height = diam;
             shape.Width = diam;
 
@@ -81,7 +80,8 @@ namespace hexaGoNal
                 case DotState.Win:
                     shape.Stroke = new SolidColorBrush(Colors.White);
                     shape.StrokeThickness = 2;
-                    shape.Effect = new DropShadowEffect {
+                    shape.Effect = new DropShadowEffect
+                    {
                         ShadowDepth = 0,
                         Color = Util.ModColBrightness(player.Color, 0.5),
                         Opacity = 1,
@@ -115,12 +115,13 @@ namespace hexaGoNal
         public DotState State
         {
             get => state;
-            set {
+            set
+            {
                 if (state != value)
                 {
                     state = value;
                     OnStateChanged();
-                    
+
                 }
             }
         }

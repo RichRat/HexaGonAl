@@ -27,14 +27,6 @@ namespace hexaGonalClient.game.util
 
         public event EventHandler<object> SelectedChanged;
 
-        public double TextFontSize 
-        {
-            get {
-                return TxtBlock.FontSize;
-            }
-            set => TxtBlock.FontSize = value;
-        }
-
         public int SeletedItem
         {
             get => items.ElementAt(selectedItem).Key;
@@ -70,6 +62,11 @@ namespace hexaGonalClient.game.util
             items.Add(new KeyValuePair<int, object>(key, value));
             if (items.Count == 1)
                 updateSlectedDisplay();
+        }
+
+        public void RemoveItem(int key)
+        {
+            items.Remove(items.Where(k => k.Key == key).First());
         }
 
         private void updateSlectedDisplay()

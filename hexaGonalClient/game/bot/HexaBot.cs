@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Windows.Media.Animation;
 
 namespace hexaGonalClient.game
 {
@@ -58,7 +59,7 @@ namespace hexaGonalClient.game
         {
             InitRowCoords();
             LoadLut();
-            Difficulty = Difficulty.Hard;
+            Difficulty = Difficulty.Pro;
         }
 
         public void Clear()
@@ -91,15 +92,24 @@ namespace hexaGonalClient.game
 
             Coords ret = null;
 
-            if (Difficulty < Difficulty.VeryHard)
+            if (Difficulty < Difficulty.Master)
             {
                 ScoreMoves(Player);
-                List<Coords> bestMoves = Difficulty > Difficulty.Easy ? GetBestMoves() : GetMovesEasy();
+                List<Coords> bestMoves;
+                double randFactor = 0;
+                switch (Difficulty)
+                {
+                    case Difficulty.Weak: randFactor = 0.3; break;
+                    case Difficulty.Advanced: randFactor = 0.15; break;
+                    case Difficulty.Strong: randFactor = 0.05; break;
+                }
+
+                bestMoves = randFactor > 0 ? GetMovesEasy(randFactor) : GetBestMoves();
 
                 if (bestMoves.Count > 0)
                     ret = bestMoves[rand.Next(0, bestMoves.Count)];
             }
-            else if (Difficulty == Difficulty.VeryHard)
+            else if (Difficulty == Difficulty.Master)
             {
                 BotMove root = new(null, null);
                 GenMoveTree(root, Player);
@@ -167,15 +177,23 @@ namespace hexaGonalClient.game
             return bestMoves;
         }
 
-        private List<Coords> GetMovesEasy()
+        private List<Coords> GetMovesEasy(double spreadFactor)
         {
+            // very easy sometimes makes mistakes so skip best moves and continue for those
+            bool mistake = Difficulty == Difficulty.Weak && rand.NextDouble() > 0.9;
             // moves above 10k are forced since it might make the bot too easy if it forgets to defend at all.
-            if (cloud.Max(kvp => kvp.Value.Score) > 10000) 
+            if (cloud.Max(kvp => kvp.Value.Score) > 10000 && !mistake) 
                 return GetBestMoves();
 
             var moves = cloud.ToList();
+            int take = (int)(moves.Count * spreadFactor);
+            if (take <= 0)
+                take = 1;
+
             moves.Sort((a, b) => b.Value.Score.CompareTo(a.Value.Score)); // sort desc
-            return (from m in moves.Take(BOT_EASY_BAG) select m.Key).ToList();
+            var ret = (from m in moves.Take(take) select m.Key).ToList();
+            Console.WriteLine("bot range " + ret.Count);
+            return ret;
         }
 
         private List<Coords> GetTopMoves(int n)
@@ -272,7 +290,7 @@ namespace hexaGonalClient.game
 
             foreach (BotLutEntry bl in scoreLookup)
             {
-                // idk why i am checking for positive here
+                // stops the loop if there was a match. Used to speed up very clear situations.
                 if (score.IsPositive() && bl.IsBreak)
                     break;
 
@@ -286,7 +304,7 @@ namespace hexaGonalClient.game
                 
                 if (!combo)
                     score += bl.Check(row);
-                else if (bl.IsMatch(row) && Difficulty > Difficulty.Normal)
+                else if (bl.IsMatch(row) && Difficulty > Difficulty.Strong)
                     comboHit[comboId]++;
             }
 
