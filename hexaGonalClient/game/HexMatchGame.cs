@@ -22,10 +22,10 @@ namespace hexaGoNal.game
 
     class HexMatchGame : Canvas
     {
-        private readonly Dictionary<Coords, Dot> dots = new();
+        private readonly Dictionary<Coords, Dot> dots = [];
         private readonly Canvas offCan = new();
         
-        private readonly List<Player> players = new();
+        private readonly List<Player> players = [];
         private int playerIndex;
 
         private GameState state = GameState.Initialized;
@@ -41,8 +41,8 @@ namespace hexaGoNal.game
         // highlight last placed dot
         private Dot lastPlacedDot = null;
 
-        private double dotSpacing = 26;
-        private double dotDiameter = 22;
+        private readonly double dotSpacing = 26;
+        private readonly double dotDiameter = 22;
         private static readonly double yAchisRad = Math.PI / 3;
         private Vector xAxsis = new(1, 0);
         private Vector yAxsis = new(Math.Cos(yAchisRad), Math.Sin(yAchisRad));
@@ -53,7 +53,7 @@ namespace hexaGoNal.game
         public event EventHandler Exit;
         public event EventHandler Reset;
 
-        private HexaBot bot = new();
+        private readonly HexaBot bot = new();
 
         public bool BotEnabled { get; set; } = false;
         public int GameLength { get; set; } = 0;
