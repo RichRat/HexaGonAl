@@ -52,6 +52,7 @@ namespace hexaGoNal.game
         public event EventHandler<Player> RoundWon;
         public event EventHandler Exit;
         public event EventHandler Reset;
+        public event EventHandler<Player> GameFinished;
 
         private readonly HexaBot bot = new();
 
@@ -325,7 +326,10 @@ namespace hexaGoNal.game
                 ActivePlayer.Score++;
                 Console.WriteLine("Winner: " + ActivePlayer.Name);
                 if (GameLength > 0 && players.Max(p => p.Score) >= GameLength / 2 + 1)
+                {
                     state = GameState.GameFinished;
+                    GameFinished?.Invoke(this, ActivePlayer);
+                }
                 else
                     state = GameState.RoundTransition;
 

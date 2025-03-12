@@ -52,6 +52,11 @@ namespace hexaGoNal
             game.PlayerChanged += OnPlayerChanged;
             game.Exit += (_, _) => btnReset_Click(null, null);
             KeyDown += game.OnKeyDown;
+            game.GameFinished += (_, p) =>
+            {
+                gss.Stats.UpdateStats(p).SaveStats();
+                gss.UpdateStatFields();
+            };
             game.StartGame(p);
             spScore.InitScoreBord(game);
         }

@@ -118,5 +118,17 @@ namespace hexaGonalClient.Properties {
                 this["maxGameLen"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string stats {
+            get {
+                return ((string)(this["stats"]));
+            }
+            set {
+                this["stats"] = value;
+            }
+        }
     }
 }
