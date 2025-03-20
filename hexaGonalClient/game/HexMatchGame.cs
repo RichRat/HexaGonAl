@@ -16,6 +16,8 @@ using hexaGonalClient.game.util;
 using System.Xml;
 using System.Net.WebSockets;
 using System.Runtime.InteropServices.Swift;
+using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace hexaGoNal.game
 {
@@ -46,6 +48,8 @@ namespace hexaGoNal.game
         private static readonly double yAchisRad = Math.PI / 3;
         private Vector xAxsis = new(1, 0);
         private Vector yAxsis = new(Math.Cos(yAchisRad), Math.Sin(yAchisRad));
+
+        private static readonly int BOT_WAIT_TIME = 100;
 
         private readonly Animator animator;
         public event EventHandler<Player> PlayerChanged;
@@ -562,7 +566,7 @@ namespace hexaGoNal.game
             return ret;
         }
 
-        private void BotMove()
+        private async void BotMove()
         {
             if (!ActivePlayer.IsBot)
                 return;
@@ -570,7 +574,16 @@ namespace hexaGoNal.game
             //TODO dont immediately execute. Either dispatch or thread because otherwise player changed is called within the eventhandler.
             state = GameState.WaitingForTurn;
             //TODO async calculate bot turn
-            previewCoords = bot.CalcTurn(ActivePlayer);
+            previewCoords = await Task.Run(() => {
+                Stopwatch sw = Stopwatch.StartNew();
+                Coords ret = bot.CalcTurn(ActivePlayer);
+                sw.Stop();
+                if (sw.ElapsedMilliseconds < BOT_WAIT_TIME)
+                    Task.Delay(BOT_WAIT_TIME - (int)sw.ElapsedMilliseconds).Wait();
+
+                return ret;
+                
+            });
             previewDot = new Dot(bot.Player, dotDiameter);
 #if DEBUG
             if (bot.getCloud().ContainsKey(previewCoords))
