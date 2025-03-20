@@ -16,16 +16,18 @@ using hexaGonalClient.game.util;
 using System.Xml;
 using System.Net.WebSockets;
 using System.Runtime.InteropServices.Swift;
+using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace hexaGoNal.game
 {
 
     class HexMatchGame : Canvas
     {
-        private readonly Dictionary<Coords, Dot> dots = new();
+        private readonly Dictionary<Coords, Dot> dots = [];
         private readonly Canvas offCan = new();
         
-        private readonly List<Player> players = new();
+        private readonly List<Player> players = [];
         private int playerIndex;
 
         private GameState state = GameState.Initialized;
@@ -33,7 +35,7 @@ namespace hexaGoNal.game
         private bool isDrag = false;
 
         private WinRoundScreen wrs;
-        
+         
         // preview coordinates
         private Coords previewCoords;
         // preview dot
@@ -41,19 +43,22 @@ namespace hexaGoNal.game
         // highlight last placed dot
         private Dot lastPlacedDot = null;
 
-        private double dotSpacing = 26;
-        private double dotDiameter = 22;
+        private readonly double dotSpacing = 26;
+        private readonly double dotDiameter = 22;
         private static readonly double yAchisRad = Math.PI / 3;
         private Vector xAxsis = new(1, 0);
         private Vector yAxsis = new(Math.Cos(yAchisRad), Math.Sin(yAchisRad));
+
+        private static readonly int BOT_WAIT_TIME = 100;
 
         private readonly Animator animator;
         public event EventHandler<Player> PlayerChanged;
         public event EventHandler<Player> RoundWon;
         public event EventHandler Exit;
         public event EventHandler Reset;
+        public event EventHandler<Player> GameFinished;
 
-        private HexaBot bot = new();
+        private readonly HexaBot bot = new();
 
         public bool BotEnabled { get; set; } = false;
         public int GameLength { get; set; } = 0;
@@ -144,8 +149,7 @@ namespace hexaGoNal.game
             //Console.WriteLine("Start Game");
             
             //clear up previous game
-            scroller.Offset = new Vector();
-            scroller.SetOffset();
+            scroller.SetOffset(new Vector());
 
             this.players.Clear();
             this.players.AddRange(players);
@@ -188,8 +192,7 @@ namespace hexaGoNal.game
                     state = GameState.Turn;
                     dots.Clear();
                     offCan.Children.Clear();
-                    scroller.Offset = new Vector();
-                    scroller.SetOffset();
+                    scroller.SetOffset(new Vector());
                     bot.Clear();
                     BotMove();
                 };
@@ -300,10 +303,21 @@ namespace hexaGoNal.game
 
         private void PlaceDot()
         {
-            bool isFirst = dots.Count == 0;
+            if (dots.Count == 0)
+            {
+                // the first dot will always have the coordinates 0 0 which allows for better zooming
+                // and helps to root recorded games (planned)
+                Vector v = CoordsToScreen(previewCoords);
+                Console.WriteLine("click screen pos " + v);
+                scroller.SetOffset(v * scroller.Scale);
+                previewCoords = new Coords();
+                SetLeft(previewDot.Shape, 0 - dotDiameter / 2);
+                SetTop(previewDot.Shape, 0 - dotDiameter / 2);
+            }
             dots.Add(previewCoords, previewDot);
             previewDot.State = DotState.LastPlaced;
             AnimatePlaceDot(previewDot, previewCoords);
+
             if (lastPlacedDot != null)
                 lastPlacedDot.State = DotState.Default;
 
@@ -325,7 +339,10 @@ namespace hexaGoNal.game
                 ActivePlayer.Score++;
                 Console.WriteLine("Winner: " + ActivePlayer.Name);
                 if (GameLength > 0 && players.Max(p => p.Score) >= GameLength / 2 + 1)
+                {
                     state = GameState.GameFinished;
+                    GameFinished?.Invoke(this, ActivePlayer);
+                }
                 else
                     state = GameState.RoundTransition;
 
@@ -349,6 +366,9 @@ namespace hexaGoNal.game
 
         private void DebugBotLogicDisplay()
         {
+            if (!ActivePlayer.IsBot)
+                return;
+
             foreach (Dot d in debugRemove)
                 offCan.Children.Remove(d.Shape as UIElement);
 
@@ -378,7 +398,7 @@ namespace hexaGoNal.game
         private void AnimatePlaceDot(Dot dot, Coords c)
         {
             Vector pos = CoordsToScreen(c);
-            Ellipse disc = new()
+            Ellipse splash = new()
             {
                 Height = dot.Shape.Height,
                 Width = dot.Shape.Width,
@@ -386,19 +406,19 @@ namespace hexaGoNal.game
                 Opacity = 0
             };
 
-            offCan.Children.Insert(0, disc);
+            offCan.Children.Insert(0, splash);
 
             double maxSize = dotDiameter * 3;
             Animation anim = animator.RegisterAnimation(500, (k, x) =>
             {
                 double diam = dotDiameter + dotDiameter * 2 * x;
-                disc.Height = diam;
-                disc.Width = diam;
-                SetLeft(disc, pos.X - disc.Width / 2);
-                SetTop(disc, pos.Y - disc.Height / 2);
-                disc.Opacity = 1 - x;
-            }, disc, AnimationStyle.EaseInOut);
-            anim.AnimationFinished = () => offCan.Children.Remove(disc);
+                splash.Height = diam;
+                splash.Width = diam;
+                SetLeft(splash, pos.X - splash.Width / 2);
+                SetTop(splash, pos.Y - splash.Height / 2);
+                splash.Opacity = 1 - x;
+            }, splash, AnimationStyle.EaseInOut);
+            anim.AnimationFinished = () => offCan.Children.Remove(splash);
         }
 
 
@@ -546,7 +566,7 @@ namespace hexaGoNal.game
             return ret;
         }
 
-        private void BotMove()
+        private async void BotMove()
         {
             if (!ActivePlayer.IsBot)
                 return;
@@ -554,7 +574,16 @@ namespace hexaGoNal.game
             //TODO dont immediately execute. Either dispatch or thread because otherwise player changed is called within the eventhandler.
             state = GameState.WaitingForTurn;
             //TODO async calculate bot turn
-            previewCoords = bot.CalcTurn(ActivePlayer);
+            previewCoords = await Task.Run(() => {
+                Stopwatch sw = Stopwatch.StartNew();
+                Coords ret = bot.CalcTurn(ActivePlayer);
+                sw.Stop();
+                if (sw.ElapsedMilliseconds < BOT_WAIT_TIME)
+                    Task.Delay(BOT_WAIT_TIME - (int)sw.ElapsedMilliseconds).Wait();
+
+                return ret;
+                
+            });
             previewDot = new Dot(bot.Player, dotDiameter);
 #if DEBUG
             if (bot.getCloud().ContainsKey(previewCoords))

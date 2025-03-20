@@ -33,7 +33,9 @@
             <TextBlock Text="Bot Level" Grid.Row="2" Grid.Column="0" Foreground="White" TextAlignment="Right" FontSize="25" FontWeight="Bold" Margin="10" VerticalAlignment="Center"></TextBlock>
             <util:ComboSwitchBox x:Name="inpDifficulty" Grid.Row="2" Grid.Column="1" Margin="5" Height="38" FontSize="23"/>
             <TextBlock Text="Game Length" Grid.Row="3" Grid.Column="0" Foreground="White" TextAlignment="Right" FontSize="25" FontWeight="Bold" Margin="10" VerticalAlignment="Center"></TextBlock>
-            <util:ComboSwitchBox x:Name="inpGameLength" Grid.Row="3" Grid.Column="1" Margin="5" Height="38" FontSize="23"/>
+            <util:ComboSwitchBox x:Name="inpGameLength" Grid.Row="3" Grid.Column="1" Margin="5" Height="38" FontSize="23" SelectedChanged="inpGameLength_SelectedChanged"/>
+            <TextBlock Name="TxtWinsDiff" Grid.Row="2" Grid.Column="2" Foreground="White" FontSize="20" FontWeight="Bold" Margin="10" TextAlignment="Center" VerticalAlignment="Center">x Wins</TextBlock>
+            <TextBlock Name="TxtWinsDiffLen" Grid.Row="3" Grid.Column="2" Foreground="White" FontSize="20" FontWeight="Bold" Margin="10" TextAlignment="Center" VerticalAlignment="Center">x Wins</TextBlock>
         </Grid>
         <Button Name="btnStartGame" Height="38" Width="168" FontSize="24" FontWeight="Bold" Background="#444444" Foreground="White" Click="btnStartGame_Click">Start Game</Button>
     </StackPanel>

@@ -24,8 +24,9 @@ namespace hexaGoNal
     public partial class MainWindow : Window
     {
         private HexMatchGame game;
-        private Animator anim;
+        private readonly Animator anim;
         private GameSetupScreen gss;
+        
 
         public MainWindow()
         {
@@ -49,23 +50,17 @@ namespace hexaGoNal
             game.GameLength = gss.GameLength;
             grMain.Children.Add(game);
             game.PlayerChanged += OnPlayerChanged;
-            game.RoundWon += OnRoundWon;
             game.Exit += (_, _) => btnReset_Click(null, null);
-            game.Reset += (_, _) => spScore.Children.Clear();
             KeyDown += game.OnKeyDown;
+            game.GameFinished += (_, p) =>
+            {
+                gss.Stats.UpdateStats(p).SaveStats();
+                gss.UpdateStatFields();
+            };
             game.StartGame(p);
+            spScore.InitScoreBord(game);
         }
 
-        private void OnRoundWon(object sender, Player p)
-        {
-            spScore.Children.Add(new Ellipse
-            {
-                Height = 22,
-                Width = 22,
-                Fill = p.Brush,
-                Margin = new Thickness { Right = 12 }
-            });
-        }
 
         private void OnPlayerChanged(object sender, Player pl)
         {
@@ -85,7 +80,7 @@ namespace hexaGoNal
                 grMain.Children.Remove(game);
                 game = null;
                 RectSpacer.Fill = (SolidColorBrush)new BrushConverter().ConvertFrom("#444");
-                spScore.Children.Clear();
+                spScore.Reset();
             };
 
             anim.RegisterAnimation(250, (_, x) => gss.Opacity = x, AnimationStyle.EaseIn);

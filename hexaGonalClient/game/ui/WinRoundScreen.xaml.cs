@@ -25,6 +25,7 @@ namespace hexaGonalClient
     {
         private Canvas parent;
         private double zoom = 1;
+        private bool btnEnabled = false;
 
         public enum Response
         {
@@ -96,6 +97,7 @@ namespace hexaGonalClient
 
             if (isEndGame)
             {
+                btnEnabled = true;
                 txtWinner.Text = winPlayer.Name + " Game Win";
                 textEndRound.Visibility = Visibility.Hidden;
                 gridEndGame.Visibility = Visibility.Visible;
@@ -109,12 +111,20 @@ namespace hexaGonalClient
 
         private void BtnRestart_Click(object sender, RoutedEventArgs e)
         {
-            ButtonClick?.Invoke(this, Response.Restart);
+            if (btnEnabled)
+            {
+                btnEnabled = false;
+                ButtonClick?.Invoke(this, Response.Restart);
+            }
         }
 
         private void BtnSettings_Click(object sender, RoutedEventArgs e)
         {
-            ButtonClick?.Invoke(this, Response.Settings);
+            if (btnEnabled)
+            {
+                btnEnabled = false;
+                ButtonClick?.Invoke(this, Response.Settings);
+            }
         }
     }
 }

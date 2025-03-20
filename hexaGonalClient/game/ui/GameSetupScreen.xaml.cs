@@ -31,6 +31,7 @@ namespace hexaGonalClient.game
         private bool inpP2init = true;
         private readonly Animator anim;
         public int GameLength { get; set; } = -1;
+        public StatTracker Stats { get; set; } = null;
 
         public event EventHandler<List<Player>> StartGame;
 
@@ -67,6 +68,14 @@ namespace hexaGonalClient.game
                     inpGameLength.AddItem(i, i > 0 ? i.ToString() : "inf");
             
             inpGameLength.SeletedItem = GameLength = Properties.Settings.Default.gameLen;
+
+            Stats = new()
+            {
+                Diff = p2.Difficulty,
+                GameLength = GameLength
+            };
+
+            UpdateStatFields();
         }
 
         private void colPlayer1_MouseDown(object sender, MouseButtonEventArgs e)
@@ -186,6 +195,42 @@ namespace hexaGonalClient.game
                     inpPlayer2.Text = "Player 2";
                     inpPlayer2.IsEnabled = true;
                 }
+
+                if (Stats.Diff != diff)
+                {
+                    Stats.Diff = diff;
+                    UpdateStatFields();
+                }
+            }
+        }
+
+        private void inpGameLength_SelectedChanged(object sender, object e)
+        {
+            int len = inpGameLength.SeletedItem;
+            if (Stats.GameLength != len)
+            {
+                Stats.GameLength = len;
+                UpdateStatFields();
+            }
+        }
+
+        public void UpdateStatFields()
+        {
+            if (Stats == null)
+                return;
+
+            if (Stats.Diff == Difficulty.HotSeat)
+            {
+                TxtWinsDiff.Text = "";
+                TxtWinsDiffLen.Text = "";
+            }
+            else
+            {
+                TxtWinsDiff.Text = Stats.getGlobalStat() + " Wins";
+                if (Stats.GameLength > 0)
+                    TxtWinsDiffLen.Text = Stats.getCurrentStat() + " Wins";
+                else
+                    TxtWinsDiffLen.Text = "";
             }
         }
 
