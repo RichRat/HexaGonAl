@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.Swift;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,6 +11,12 @@ namespace hexaGonalClient.game.util
     {
         public int X { get; set; }
         public int Y { get; set; }
+
+        public Coords()
+        {
+            X = 0;
+            Y = 0;
+        }
 
         public Coords(int x, int y)
         {

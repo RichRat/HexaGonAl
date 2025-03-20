@@ -11,17 +11,18 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Shapes;
 using Vector = System.Windows.Vector;
 
 namespace hexaGonalClient.game.util
 {
     class ScreenScroller
     {
-        private Canvas canv;
-        private HexMatchGame game;
+        private readonly Canvas canv;
+        private readonly HexMatchGame game;
+        private readonly Animator animator;
         private Vector offset;
-        private Animator animator;
-        private double zoom = 1;
+        private static double zoom = 1;
         private double winZoom = 0;
         // dimensions of the canvas on a clean start
         private Vector? initSize = new Vector(884, 530);
@@ -39,8 +40,6 @@ namespace hexaGonalClient.game.util
             }
         }
 
-        public Vector ZoomOffset { get; set; }
-
         public double WinScale { get => winZoom; }
 
         public double Scale { get => winZoom + zoom; }
@@ -55,6 +54,12 @@ namespace hexaGonalClient.game.util
             this.animator = animator;
             this.game = game;
             this.canv = canv;
+        }
+
+        public void SetOffset(Vector _offset)
+        {
+            this.offset = _offset;
+            SetOffset();
         }
 
         public void SetOffset()
@@ -154,8 +159,7 @@ namespace hexaGonalClient.game.util
                 zoom = 1 - winZoom;
             }
             
-
-            canv.LayoutTransform = new ScaleTransform(zf, zf, ZoomOffset.X, ZoomOffset.Y);
+            canv.LayoutTransform = new ScaleTransform(zf, zf);
             canv.UpdateLayout();
         }
     }

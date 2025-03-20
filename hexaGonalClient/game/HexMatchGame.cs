@@ -33,7 +33,7 @@ namespace hexaGoNal.game
         private bool isDrag = false;
 
         private WinRoundScreen wrs;
-        
+         
         // preview coordinates
         private Coords previewCoords;
         // preview dot
@@ -145,8 +145,7 @@ namespace hexaGoNal.game
             //Console.WriteLine("Start Game");
             
             //clear up previous game
-            scroller.Offset = new Vector();
-            scroller.SetOffset();
+            scroller.SetOffset(new Vector());
 
             this.players.Clear();
             this.players.AddRange(players);
@@ -189,8 +188,7 @@ namespace hexaGoNal.game
                     state = GameState.Turn;
                     dots.Clear();
                     offCan.Children.Clear();
-                    scroller.Offset = new Vector();
-                    scroller.SetOffset();
+                    scroller.SetOffset(new Vector());
                     bot.Clear();
                     BotMove();
                 };
@@ -301,10 +299,21 @@ namespace hexaGoNal.game
 
         private void PlaceDot()
         {
-            bool isFirst = dots.Count == 0;
+            if (dots.Count == 0)
+            {
+                // the first dot will always have the coordinates 0 0 which allows for better zooming
+                // and helps to root recorded games (planned)
+                Vector v = CoordsToScreen(previewCoords);
+                Console.WriteLine("click screen pos " + v);
+                scroller.SetOffset(v * scroller.Scale);
+                previewCoords = new Coords();
+                SetLeft(previewDot.Shape, 0 - dotDiameter / 2);
+                SetTop(previewDot.Shape, 0 - dotDiameter / 2);
+            }
             dots.Add(previewCoords, previewDot);
             previewDot.State = DotState.LastPlaced;
             AnimatePlaceDot(previewDot, previewCoords);
+
             if (lastPlacedDot != null)
                 lastPlacedDot.State = DotState.Default;
 
@@ -353,6 +362,9 @@ namespace hexaGoNal.game
 
         private void DebugBotLogicDisplay()
         {
+            if (!ActivePlayer.IsBot)
+                return;
+
             foreach (Dot d in debugRemove)
                 offCan.Children.Remove(d.Shape as UIElement);
 
@@ -382,7 +394,7 @@ namespace hexaGoNal.game
         private void AnimatePlaceDot(Dot dot, Coords c)
         {
             Vector pos = CoordsToScreen(c);
-            Ellipse disc = new()
+            Ellipse splash = new()
             {
                 Height = dot.Shape.Height,
                 Width = dot.Shape.Width,
@@ -390,19 +402,19 @@ namespace hexaGoNal.game
                 Opacity = 0
             };
 
-            offCan.Children.Insert(0, disc);
+            offCan.Children.Insert(0, splash);
 
             double maxSize = dotDiameter * 3;
             Animation anim = animator.RegisterAnimation(500, (k, x) =>
             {
                 double diam = dotDiameter + dotDiameter * 2 * x;
-                disc.Height = diam;
-                disc.Width = diam;
-                SetLeft(disc, pos.X - disc.Width / 2);
-                SetTop(disc, pos.Y - disc.Height / 2);
-                disc.Opacity = 1 - x;
-            }, disc, AnimationStyle.EaseInOut);
-            anim.AnimationFinished = () => offCan.Children.Remove(disc);
+                splash.Height = diam;
+                splash.Width = diam;
+                SetLeft(splash, pos.X - splash.Width / 2);
+                SetTop(splash, pos.Y - splash.Height / 2);
+                splash.Opacity = 1 - x;
+            }, splash, AnimationStyle.EaseInOut);
+            anim.AnimationFinished = () => offCan.Children.Remove(splash);
         }
 
 
