@@ -21,7 +21,7 @@ namespace hexaGonalClient.game.ui
 
         public ScoreBord()
         {
-            this.anim = new(this);
+            this.anim = new();
         }
 
         public void InitScoreBord(HexMatchGame game)

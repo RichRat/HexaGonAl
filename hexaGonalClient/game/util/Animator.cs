@@ -6,39 +6,29 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
+using System.Windows.Media;
 
 namespace hexaGonalClient.game
 {
-    partial class Animator : IDisposable
+    partial class Animator
     {
-        private readonly Timer timer;
         private readonly ConcurrentDictionary<Object, Animation> animators = new();
-        private readonly FrameworkElement elem;
-        private readonly Random rnd = new();
         
         private long int_key = 0;
 
-        public Animator(FrameworkElement elem)
+        public Animator()
         {
-            this.elem = elem;
-
-            timer = new();
-            timer.Interval = 1000 / 60;
-            timer.Elapsed += OnTimerElapsed;
-            timer.Start();
-            timer.Enabled = false; //is enabled on first animatee
+            CompositionTarget.Rendering += OnRendering;
         }
 
-        private void OnTimerElapsed(object sender, ElapsedEventArgs e)
+        private void OnRendering(object sender, EventArgs e)
         {
-            long curTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
             bool remFlag = false;
-
             foreach (var kvp in animators)
             {
                 Animation anim = kvp.Value;
                 //x is the linear progress of the animation
-                double x = 1 - (double)(anim.GetRemainTime()) / (double)anim.Duration;
+                double x = 1 - anim.GetRemainTime() / anim.Duration;
                 if (anim.IsDone())
                 {
                     x = 1;
@@ -55,14 +45,14 @@ namespace hexaGonalClient.game
                     _ => x
                 };
 
-                elem.Dispatcher.Invoke(anim.Action, kvp.Key, animFactor);
+                anim.Action(kvp.Key, animFactor);
             }
 
             if (remFlag)
             {
                 foreach (KeyValuePair<object, Animation> item in animators.Where(kvp => kvp.Value.IsDone()))
                 {
-                    item.Value.OnFinished(elem.Dispatcher);                        
+                    item.Value.OnFinished();                        
                     RemoveAnimatee(item.Key);
                 }
             }
@@ -79,9 +69,6 @@ namespace hexaGonalClient.game
             bool r = animators.TryAdd(key, anim);
             if (!r)
                 Console.WriteLine("Failed adding animation " + key);
-
-            if (!timer.Enabled)
-                timer.Enabled = true;
 
             return anim;
         }
@@ -101,13 +88,6 @@ namespace hexaGonalClient.game
                 return;
 
             animators.Remove(key, out _);
-            if (animators.IsEmpty && timer.Enabled)
-                timer.Enabled = false;
-        }
-
-        public void Dispose()
-        {
-            timer?.Dispose();
         }
     }
 }

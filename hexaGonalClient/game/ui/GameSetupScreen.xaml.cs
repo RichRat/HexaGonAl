@@ -39,7 +39,7 @@ namespace hexaGonalClient.game
         public GameSetupScreen()
         {
             InitializeComponent();
-            anim = new(this);
+            anim = new();
             anim.RegisterAnimation(300, (_, x) => Opacity = x, AnimationStyle.EaseIn);
 
             p1.Color = Util.ColFromStr(Properties.Settings.Default.Player1Color);

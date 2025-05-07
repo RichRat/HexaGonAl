@@ -30,7 +30,7 @@ namespace hexaGoNal
 
         public MainWindow()
         {
-            anim = new(this);
+            anim = new();
             InitializeComponent();
             GameSetup();
         }

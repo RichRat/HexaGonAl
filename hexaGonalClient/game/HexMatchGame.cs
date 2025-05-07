@@ -99,7 +99,7 @@ namespace hexaGoNal.game
 
         public HexMatchGame()
         {
-            animator = new(this);
+            animator = new();
             scroller = new(offCan, this, animator);
 
             Children.Add(offCan);

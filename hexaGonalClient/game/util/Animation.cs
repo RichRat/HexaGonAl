@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Windows.Threading;
 using static hexaGonalClient.game.Animator;
 
@@ -6,23 +7,23 @@ namespace hexaGonalClient.game
 {
     internal class Animation
     {
-        public long Duration;
-        public long TargetTime;
+        public double Duration;
+        private Stopwatch sw = new();
         public Action<object, double> Action;
         public AnimationStyle Style;
         private bool finEvoked = false;
 
         public Animation(long duration, Action<object, double> action, AnimationStyle style = AnimationStyle.EaseInOut)
         {
-            TargetTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() + duration;
+            sw.Start();
             Duration = duration;
             Action = action;
             Style = style;
         }
 
-        public long GetRemainTime()
+        public double GetRemainTime()
         {
-            return TargetTime - DateTimeOffset.Now.ToUnixTimeMilliseconds();
+            return (double)Duration - sw.Elapsed.TotalMilliseconds;
         }
 
         public bool IsDone()
@@ -32,12 +33,13 @@ namespace hexaGonalClient.game
 
         public Action AnimationFinished { get; set; }
 
-        internal void OnFinished(Dispatcher disp)
+        internal void OnFinished()
         {
+            sw.Stop();
             if (AnimationFinished != null && !finEvoked)
             {
                 finEvoked = true;
-                disp.Invoke(AnimationFinished);
+                AnimationFinished();
             }
         }
     }

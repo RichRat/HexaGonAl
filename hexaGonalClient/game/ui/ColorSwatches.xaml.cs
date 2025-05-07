@@ -83,7 +83,7 @@ namespace hexaGonalClient.game.util
                 ugGrid.Children.Add(rect);
             }
 
-            anim = new(this);
+            anim = new();
             Opacity = 0;
             anim.RegisterAnimation(700, (o, x) => Opacity = x, AnimationStyle.EaseOut);
         }
