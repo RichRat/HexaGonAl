@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:hexaGoNal"
         xmlns:cui="clr-namespace:hexaGonalClient.game.ui"
         mc:Ignorable="d"
-        Title="MainWindow" Height="600" Width="900" Background="Black">
+        Title="HexaGonal" Height="600" Width="900" Background="Black">
     <Grid Name="grMain">
         <Grid.RowDefinitions>
             <RowDefinition Height="50px"></RowDefinition>
