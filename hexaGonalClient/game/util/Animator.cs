@@ -28,12 +28,8 @@ namespace hexaGonalClient.game
             {
                 Animation anim = kvp.Value;
                 //x is the linear progress of the animation
-                double x = 1 - anim.GetRemainTime() / anim.Duration;
-                if (anim.IsDone())
-                {
-                    x = 1;
-                    remFlag = true;
-                }
+                double x = anim.GetFactor();
+                remFlag = anim.IsDone();
 
                 //convert linear factor to animation progress 0 to 1
                 double animFactor = anim.Style switch
@@ -45,7 +41,7 @@ namespace hexaGonalClient.game
                     _ => x
                 };
 
-                anim.Action(kvp.Key, animFactor);
+                anim.Invoke(kvp.Key, animFactor);
             }
 
             if (remFlag)
@@ -58,19 +54,23 @@ namespace hexaGonalClient.game
             }
         }
 
-        public Animation RegisterAnimation(long millis, Action<Object, double> animate, AnimationStyle style = AnimationStyle.EaseInOut)
+        public Animation RegisterAnimation(Animation anim, Object key)
         {
-            return RegisterAnimation(millis, animate, int_key++, style);
-        }
-
-        public Animation RegisterAnimation(long millis, Action<Object, double> animate, object key, AnimationStyle style = AnimationStyle.EaseInOut)
-        {
-            Animation anim = new(millis, animate, style);
             bool r = animators.TryAdd(key, anim);
             if (!r)
                 Console.WriteLine("Failed adding animation " + key);
 
             return anim;
+        }
+
+        public Animation RegisterAnimation(long millis, Action<Object, double> animate, AnimationStyle style = AnimationStyle.EaseInOut) 
+            => RegisterAnimation(millis, animate, int_key++, style);
+        
+
+        public Animation RegisterAnimation(long millis, Action<Object, double> animate, object key, AnimationStyle style = AnimationStyle.EaseInOut)
+        {
+            Animation anim = new(millis, animate, style);
+            return RegisterAnimation(anim, key);
         }
 
         public void UnregisterAnimation(Object key, bool callFinalState = false)

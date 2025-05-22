@@ -12,7 +12,7 @@
 ## $v = strategic value of the move (attack high, defend low)
 ## !break : if match till now abort used for forced moves
 ##
-## all combinations that don' exceed a length of 4 from v are valid
+## all combinations that don't exceed a length of 4 from x are valid
 
 #win
 $s = 100000

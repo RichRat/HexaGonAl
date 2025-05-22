@@ -132,6 +132,10 @@ namespace hexaGoNal.game
                         state = GameState.Turn;
                     break;
 #endif
+                case Key.Space:
+                    scroller.SetOffset(new Vector());
+                    break;
+
                 default:
                     break;
             }
@@ -283,7 +287,7 @@ namespace hexaGoNal.game
 
         private void OnMouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (!isDrag && e.RightButton == MouseButtonState.Pressed)
+            if (!isDrag && e.RightButton == MouseButtonState.Pressed && dots.Count > 0)
             {
                 isDrag = true;
                 scroller.StartDrag(sender, e);

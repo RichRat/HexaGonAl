@@ -18,6 +18,9 @@ namespace hexaGonalClient.game.util
 {
     class ScreenScroller
     {
+        //private readonly double MAX_DIST = 300;
+        private readonly int DRAG_HIST = 10;
+
         private readonly Canvas canv;
         private readonly HexMatchGame game;
         private readonly Animator animator;
@@ -45,9 +48,9 @@ namespace hexaGonalClient.game.util
         public double Scale { get => winZoom + zoom; }
 
         private Point? prevMousePos;
-        private List<Vector> dragVels = new();
+        private List<Vector> dragHist = new();
         private List<Stopwatch> dragVelTimes = new();
-        private Vector postDragDir;
+        private Vector postDragVector;
 
         public ScreenScroller(Canvas canv, HexMatchGame game, Animator animator)
         {
@@ -84,11 +87,11 @@ namespace hexaGonalClient.game.util
 
             Point mousePosition = e.GetPosition(game);
             offset += mousePosition - prevMousePos.Value;
-            dragVels.Add(prevMousePos.Value - mousePosition);
+            dragHist.Add((Vector)mousePosition);
             dragVelTimes.Add(Stopwatch.StartNew());
-            if (dragVels.Count > 5)
+            if (dragHist.Count > DRAG_HIST)
             {
-                dragVels.RemoveAt(0);
+                dragHist.RemoveAt(0);
                 dragVelTimes.RemoveAt(0);
             }
 
@@ -104,25 +107,26 @@ namespace hexaGonalClient.game.util
 
             Stopwatch sw = dragVelTimes[0];
             sw.Stop();
-            postDragDir = new Vector();
-            foreach (Vector v in dragVels)
-                postDragDir += v;
+            postDragVector = (dragHist.Last() - dragHist.First()) / sw.Elapsed.TotalSeconds;
 
-            postDragDir *= 1000d / 60d * 10000d / (sw.ElapsedTicks + 1);
-            if (postDragDir.Length > 0.01)
-                animator.RegisterAnimation(250, PostAnimateDrag, "after drag", AnimationStyle.EaseOut);
+            //TODO maybe add max dist check back in after testing
+
+            if (postDragVector.Length > 0.01)
+                animator.RegisterAnimation(new TimedAnimation(250, AfterDragAnimate, AnimationStyle.EaseOut), "after drag");
         }
-        private void PostAnimateDrag(object key, double x)
+
+        private void AfterDragAnimate(object obj, double x, double dt)
         {
-            offset -= postDragDir * (1 - x);
+            // move the scroll position based on the elapsed time
+            offset += postDragVector * dt * (1 - x);
             SetOffset();
         }
 
         public void StartDrag(object sender, MouseButtonEventArgs e)
-        {
+        {y
             prevMousePos = e.GetPosition(game);
             animator.UnregisterAnimation("after drag");
-            dragVels.Clear();
+            dragHist.Clear();
             dragVelTimes.Clear();
         }
 
@@ -132,15 +136,15 @@ namespace hexaGonalClient.game.util
             set => offset = value;
         }
 
-        internal Animation AnimateScroll(int durationMs, Vector scrollTarget, AnimationStyle style = AnimationStyle.EaseInOut)
+        internal Animation AnimateScroll(int durationMs, Vector scrollTarget, AnimationStyle style = AnimationStyle.EaseInOut, string aname = "animate scroll")
         {
-            animator.UnregisterAnimation("animate scroll");
+            animator.UnregisterAnimation(aname);
             Vector startOffset = offset;
             return animator.RegisterAnimation(durationMs, (k, x) =>
             {
                 offset = x * scrollTarget + (1 - x) * startOffset;
                 SetOffset();
-            }, "animate scroll", style);
+            }, aname, style);
         }
 
         //example https://stackoverflow.com/questions/33185482/how-to-programmatically-change-the-scale-of-a-canvas

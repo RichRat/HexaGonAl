@@ -8,10 +8,10 @@ namespace hexaGonalClient.game
     internal class Animation
     {
         public double Duration;
-        private Stopwatch sw = new();
+        protected Stopwatch sw = new();
         public Action<object, double> Action;
         public AnimationStyle Style;
-        private bool finEvoked = false;
+        protected bool finEvoked = false;
 
         public Animation(long duration, Action<object, double> action, AnimationStyle style = AnimationStyle.EaseInOut)
         {
@@ -26,9 +26,20 @@ namespace hexaGonalClient.game
             return (double)Duration - sw.Elapsed.TotalMilliseconds;
         }
 
+        public double GetFactor()
+        {
+            double ret = sw.Elapsed.TotalMilliseconds / Duration;
+            return ret > 1 ? 1 : ret;
+        }
+
         public bool IsDone()
         {
             return GetRemainTime() <= 0;
+        }
+
+        public virtual void Invoke(object obj, double x)
+        {
+            Action(obj, x);
         }
 
         public Action AnimationFinished { get; set; }
