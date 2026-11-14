@@ -123,7 +123,7 @@ namespace hexaGonalClient.game.util
         }
 
         public void StartDrag(object sender, MouseButtonEventArgs e)
-        {y
+        {
             prevMousePos = e.GetPosition(game);
             animator.UnregisterAnimation("after drag");
             dragHist.Clear();
